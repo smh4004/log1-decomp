@@ -1,0 +1,106 @@
+# LoG1 route: boot -> intro movie -> title -> new game -> story text -> first area
+run 3290
+keys START
+run 8
+keys
+run 60
+shot s01_menu
+keys START
+run 8
+keys
+run 90
+shot s02_newgame
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s03_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s04_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s05_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s06_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s07_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s08_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s09_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s10_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s11_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s12_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s13_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s14_story
+keys RIGHT
+run 60
+keys
+run 10
+shot s15_walk_RIGHT
+keys DOWN
+run 60
+keys
+run 10
+shot s16_walk_DOWN
+keys LEFT
+run 60
+keys
+run 10
+shot s17_walk_LEFT
+keys UP
+run 60
+keys
+run 10
+shot s18_walk_UP
+keys RIGHT
+run 60
+keys
+run 10
+shot s19_walk_RIGHT
+keys DOWN
+run 60
+keys
+run 10
+shot s20_walk_DOWN
+tap START 60
+shot s21_menu
+tap B 60
+shot s22_back

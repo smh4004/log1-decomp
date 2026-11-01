@@ -1,0 +1,104 @@
+# smoke.txt in game-loop time (see syncpc in tools/harness/harness.c): used to compare decomp builds, which run at
+# a different speed, with the original (tools/decomp/gamebisect.py).
+syncpc 0x08020D78
+run 900
+tap START 60
+tap START 60
+shot s01_select
+tap A 90
+shot s02_newgame
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s03_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s04_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s05_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s06_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s07_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s08_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s09_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s10_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s11_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s12_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s13_intro
+tap A 100
+tap A 100
+tap A 100
+tap A 100
+shot s14_intro
+keys RIGHT
+run 60
+keys
+run 10
+shot s15_walk_RIGHT
+keys DOWN
+run 60
+keys
+run 10
+shot s16_walk_DOWN
+keys LEFT
+run 60
+keys
+run 10
+shot s17_walk_LEFT
+keys UP
+run 60
+keys
+run 10
+shot s18_walk_UP
+keys RIGHT
+run 60
+keys
+run 10
+shot s19_walk_RIGHT
+keys DOWN
+run 60
+keys
+run 10
+shot s20_walk_DOWN
+tap START 60
+shot s21_menu
+tap B 60
+shot s22_back
+pc

@@ -1,0 +1,14 @@
+rodata_0800FE40
+rodata_08090180
+rodata_081101F0
+rodata_08190730
+rodata_08222224
+rodata_08312888
+rodata_0839B100
+rodata_08428C64
+rodata_084DEDD8
+rodata_0855EFC4
+rodata_085E2974
+rodata_08662F88
+rodata_086E33B0
+rodata_08763770

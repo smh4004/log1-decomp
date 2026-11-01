@@ -1,0 +1,9 @@
+crt0
+code_08000118
+code_08002300
+code_080047AC
+code_080067E8
+code_08008814
+code_0800ADD4
+code_0800CDF4
+code_0800F31C

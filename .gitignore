@@ -1,0 +1,15 @@
+# Copyrighted inputs and everything derived from them at build time
+/baserom.gba
+*.gba
+*.elf
+*.sav
+/build/
+/build_shift/
+/build_modern/
+/.analysis/
+# extracted assets (generated from baserom at build time) -- root assets/ only, not tools/assets/
+/assets/
+__pycache__/
+tools/harness/harness
+/build_decomp*/
+*.bps

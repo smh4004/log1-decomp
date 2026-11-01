@@ -1,0 +1,16 @@
+# address  name        -- known symbols (edit freely; rerun tools/bfdis/gen.py)
+080000C0 _start                 # crt0 (ARM)
+08000274 AgbMain                # main (called by crt0)
+08000138 IntrMain               # ARM interrupt dispatcher (copied to IWRAM 0x03003BC0 by the game)
+080099B6 WaitForVBlank          # game loop frame wait (svc 2 until the IRQ flag is set); harness syncpc = 0x080099F2
+08009524 Decompress             # (src, flags): BIOS Huffman (swi 0x13) -> LZ77 (swi 0x11) -> RLE (swi 0x14) chain
+0800E4A0 __call_via_r0          # ADS indirect-call stubs (bx rN)
+0800E4A2 __call_via_r1
+0800E4A4 __call_via_r2
+0800E4A6 __call_via_r3
+0800E4A8 __call_via_r4
+0800E4AA __call_via_r5
+0800E4AC __call_via_r6
+0800E4AE __call_via_r7
+0800E568 __16__rt_sdiv          # Thumb entry (bx pc) of ARM signed divide; r0 = divisor, r1 = dividend
+0800E56C __rt_sdiv

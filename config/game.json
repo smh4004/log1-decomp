@@ -1,0 +1,47 @@
+{
+ "name": "log1",
+ "title": "Dragon Ball Z: The Legacy of Goku (USA)",
+ "code": "ALGE",
+ "sha1": "a3c8c76742f11fc6a3f6e3fcca20992458cac0b5",
+ "text_start": "0x118",
+ "text_end": "0xFE40",
+ "ctor": [
+  "0xEE54",
+  "0xEEC0"
+ ],
+ "vtables": [
+  "0xEED8",
+  "0xF31C"
+ ],
+ "iwram": [
+  "0x7A6418",
+  "0x03000000",
+  "0x0"
+ ],
+ "sound": [
+  "0x0",
+  "0x0"
+ ],
+ "noptr": [
+  [
+   "0x1CA178",
+   "0x337218",
+   "intro/cutscene movie stream 1 (custom codec, sub_08004580)"
+  ],
+  [
+   "0x337258",
+   "0x4DEDD8",
+   "movie stream 2"
+  ],
+  [
+   "0x4E4F54",
+   "0x53A9A4",
+   "movie stream 3"
+  ]
+ ],
+ "bios_blocks": true,
+ "palette_filter": true,
+ "isolated_refcount": 0,
+ "call_via": "0x0800E4A0",
+ "syncpc": "0x080099F2"
+}

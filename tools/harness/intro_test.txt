@@ -1,0 +1,23 @@
+# Opening narration, one screenshot per text box (used by verify_mods.py)
+run 900
+tap START 60
+tap START 60
+tap A 90
+tap A 50
+shot n1
+dump n1_ew 02000000 40000
+tap A 50
+shot n2
+dump n2_ew 02000000 40000
+tap A 50
+shot n3
+dump n3_ew 02000000 40000
+tap A 50
+shot n4
+dump n4_ew 02000000 40000
+tap A 50
+shot n5
+dump n5_ew 02000000 40000
+tap A 50
+shot n6
+dump n6_ew 02000000 40000
