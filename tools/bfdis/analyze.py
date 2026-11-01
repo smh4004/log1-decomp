@@ -314,7 +314,10 @@ def is_cstring(d, o, n=4):
     """Printable ASCII run of at least n bytes ending in NUL (assert messages and file names in the code area)."""
     e = o
     while e < len(d) and (32 <= d[e] < 127 or d[e] in (9, 10)): e += 1
-    return e - o >= n and e < len(d) and d[e] == 0
+    if e - o >= n and e < len(d) and d[e] == 0: return True
+    e = o                                   # UTF-16 (L"false" in assert messages)
+    while e + 1 < len(d) and 32 <= d[e] < 127 and d[e + 1] == 0: e += 2
+    return (e - o) // 2 >= n and e + 1 < len(d) and d[e] == 0 and d[e + 1] == 0
 
 
 def full_analysis(d, text_end, iwram, extra_seeds=()):
@@ -362,6 +365,9 @@ def full_analysis(d, text_end, iwram, extra_seeds=()):
                 # C strings (assert file names and messages reached with `adr`): printable run + NUL
                 e = p
                 while e < g1 and (32 <= d[e] < 127 or d[e] in (9, 10)): e += 1
+                if not (e - p >= 4 and e < g1 and d[e] == 0) and is_cstring(d, p):
+                    e = p
+                    while e + 1 < g1 and d[e + 1] == 0 and 32 <= d[e] < 127: e += 2
                 if e - p >= 4 and e < g1 and d[e] == 0:
                     p = e + 1
                     while p < g1 and d[p] == 0: p += 1

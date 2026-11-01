@@ -90,6 +90,12 @@ def load_raw(path):
     return s
 
 
+def entry_branch(d):
+    """`b _start` when the ROM's first word is that branch (to 0x080000C0), else the raw word (prototypes)."""
+    w = struct.unpack_from('<I', d, 0)[0]
+    return 'b _start' if w == 0xEA00002E else '.4byte 0x%08X   @ entry branch (not to _start)' % w
+
+
 def write_header(d):
     """asm/header.s from the ROM's own header fields (the Nintendo logo stays an incbin)."""
     t = d[0xA0:0xAC]
@@ -100,15 +106,15 @@ def write_header(d):
 	.text
 	.global RomHeader
 RomHeader:
-	b _start
+	%s
 RomHeaderNintendoLogo:
 	.incbin "baserom.gba", 0x4, 0x9C
 RomHeaderGameTitle:
 	.byte %s
 RomHeaderGameCode:
-	.ascii "%s"
+	.byte %s
 RomHeaderMakerCode:
-	.ascii "%s"
+	.byte %s
 RomHeaderMagic:
 	.byte 0x%02X
 RomHeaderMainUnitCode:
@@ -123,7 +129,7 @@ RomHeaderChecksum:
 	.byte 0x%02X
 RomHeaderReserved2:
 	.byte %d, %d
-''' % (', '.join('0x%02X' % c for c in t), d[0xAC:0xB0].decode(), d[0xB0:0xB2].decode(), d[0xB2], d[0xB3], d[0xB4],
+''' % (entry_branch(d), ', '.join('0x%02X' % c for c in t), ', '.join('0x%02X' % c for c in d[0xAC:0xB0]), ', '.join('0x%02X' % c for c in d[0xB0:0xB2]), d[0xB2], d[0xB3], d[0xB4],
        ', '.join(str(c) for c in d[0xB5:0xBC]), d[0xBC], d[0xBD], d[0xBE], d[0xBF]))
 
 
@@ -172,6 +178,9 @@ def main():
             return '__iwram_lma + 0x%X' % (w - ROM - RO_HI) if w != ROM + RO_HI else '__iwram_lma'
         if IWRAM[1] <= w < IWRAM[1] + IWRAM[2]:
             if w & 1 and (w - 1) in insn and insn[w - 1][0] == 't': return '%s + 1' % ref(w - 1)
+            # inside the RW image: only instruction starts and data words are addresses (0x030000FA in the middle of
+            # an ARM instruction is just a number)
+            if any((w - k) in insn and k < insn[w - k][1] for k in range(1, 4)): return None
             return ref(w)
         return None
 
