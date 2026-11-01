@@ -12,7 +12,7 @@ import sys
 o = sys.argv[1]; s = [l.strip() for l in open(o + '/starts.txt')]
 with open(o + '/ranges.txt', 'w') as f:
     for i, a in enumerate(s):
-        e = s[i + 1] if i + 1 < len(s) else '08028724'
+        e = s[i + 1] if i + 1 < len(s) else '0800FE40'
         f.write('code_%s %s %s\n' % (a, a, e))
 PY
 "$G/support/analyzeHeadless" "$P" "$N" -process -noanalysis -readOnly -scriptPath tools/ghidra \

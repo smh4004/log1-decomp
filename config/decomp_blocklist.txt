@@ -1,0 +1,9 @@
+# name  reason -- functions never replaced by C (see docs/decomp.md)
+WaitForVBlank  harness frame-sync point (syncpc 0x080099F2) must stay at its original address
+sub_08000800  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_08001F04  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_0800453A  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_080045AE  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_0800946E  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_08009486  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_08009626  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)

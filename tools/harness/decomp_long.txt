@@ -1,71 +1,76 @@
-# long.txt in game-loop time (syncpc): whole-game check for decomp builds
-syncpc 0x08020D78
-run 900
-tap START 60
-tap START 60
-shot s01_select
-tap A 90
+# long.txt in game-loop time (syncpc)
+syncpc 0x080099F2
+run 3290
+keys START
+run 8
+keys
+run 60
+shot s01_menu
+keys START
+run 8
+keys
+run 90
 shot s02_newgame
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s03_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s04_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s05_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s06_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s07_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s08_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s09_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s10_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s11_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s12_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s13_intro
-tap A 100
-tap A 100
-tap A 100
-tap A 100
-shot s14_intro
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s03_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s04_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s05_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s06_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s07_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s08_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s09_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s10_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s11_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s12_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s13_story
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot s14_story
 keys RIGHT
 run 60
 keys
@@ -101,258 +106,231 @@ shot s21_menu
 tap B 60
 shot s22_back
 keys LEFT
-run 28
+run 39
 keys
-tap A 20
-keys UP
-run 35
-keys
-tap A 20
-keys DOWN
-run 77
-keys
-tap A 20
-keys DOWN
-run 68
-keys
-tap A 20
-shot l100_walk
-keys LEFT
+tap A 30
+keys UP,LEFT
 run 32
 keys
-tap A 20
-keys DOWN
-run 23
+tap A 30
+keys UP,LEFT
+run 47
 keys
-tap A 20
-keys DOWN
-run 75
-keys
-tap A 20
-keys RIGHT
-run 77
-keys
-tap A 20
-shot l101_walk
+tap B 20
 keys UP
-run 49
+run 50
 keys
-tap A 20
-keys RIGHT
-run 60
-keys
-tap A 20
-keys RIGHT
-run 22
-keys
-tap A 20
-keys RIGHT
-run 89
-keys
-tap A 20
-shot l102_walk
-keys RIGHT
-run 68
-keys
-tap A 20
-keys LEFT
-run 74
-keys
-tap A 20
-keys RIGHT
-run 87
-keys
-tap A 20
-keys LEFT
-run 76
-keys
-tap A 20
-shot l103_walk
-keys DOWN
-run 90
-keys
-tap A 20
-keys LEFT
-run 64
-keys
-tap A 20
-keys LEFT
-run 48
-keys
-tap A 20
-keys DOWN
-run 57
-keys
-tap A 20
-shot l104_walk
-keys RIGHT
-run 73
-keys
-tap A 20
-keys RIGHT
-run 43
-keys
-tap A 20
-keys UP
+tap B 20
+shot l100_walk
+keys UP,LEFT
 run 35
 keys
-tap A 20
-keys UP
-run 84
+keys UP,LEFT
+run 27
 keys
-tap A 20
-shot l105_walk
-keys DOWN
-run 84
-keys
-tap A 20
-keys LEFT
-run 58
-keys
-tap A 20
-keys UP
-run 83
-keys
-tap A 20
-keys DOWN
-run 24
-keys
-tap A 20
-shot l106_walk
-keys DOWN
-run 51
-keys
-tap A 20
-keys DOWN
-run 73
-keys
-tap A 20
-keys LEFT
-run 66
-keys
-tap A 20
-keys UP
-run 31
-keys
-tap A 20
-shot l107_walk
-keys DOWN
-run 85
-keys
-tap A 20
-keys RIGHT
-run 40
-keys
-tap A 20
-keys DOWN
-run 67
-keys
-tap A 20
-keys DOWN
-run 23
-keys
-tap A 20
-shot l108_walk
 keys DOWN
 run 25
 keys
-tap A 20
-keys UP
-run 70
-keys
-tap A 20
-keys LEFT
-run 41
-keys
-tap A 20
-keys LEFT
-run 21
-keys
-tap A 20
-shot l109_walk
-keys LEFT
-run 89
-keys
-tap A 20
-keys LEFT
-run 71
-keys
-tap A 20
-keys UP
-run 65
-keys
-tap A 20
-keys DOWN
-run 54
-keys
-tap A 20
-shot l110_walk
+tap A 30
 keys RIGHT
-run 69
+run 38
 keys
-tap A 20
-keys LEFT
-run 86
+shot l101_walk
+keys UP,LEFT
+run 43
 keys
-tap A 20
-keys LEFT
+tap B 20
+keys DOWN
+run 67
+keys
+tap B 20
+keys UP,LEFT
+run 27
+keys
+keys UP,LEFT
 run 74
 keys
-tap A 20
+shot l102_walk
 keys RIGHT
-run 81
+run 66
 keys
-tap A 20
-shot l111_walk
+tap B 20
+keys DOWN,RIGHT
+run 51
+keys
+tap B 20
+keys RIGHT
+run 63
+keys
 keys UP
-run 90
+run 35
 keys
-tap A 20
+tap A 30
+shot l103_walk
 keys LEFT
-run 84
+run 39
 keys
-tap A 20
-keys DOWN
-run 82
+keys DOWN,RIGHT
+run 29
 keys
-tap A 20
-keys UP
-run 73
+keys LEFT
+run 63
 keys
-tap A 20
-shot l112_walk
-keys UP
-run 20
-keys
-tap A 20
-keys UP
+keys UP,LEFT
 run 78
 keys
-tap A 20
+tap B 20
+tap A 30
+shot l104_walk
+keys LEFT
+run 80
+keys
+tap A 30
+keys DOWN,RIGHT
+run 59
+keys
 keys RIGHT
-run 49
+run 56
 keys
-tap A 20
 keys LEFT
-run 90
+run 22
 keys
-tap A 20
-shot l113_walk
+shot l105_walk
+keys UP,LEFT
+run 34
+keys
 keys LEFT
-run 31
+run 36
 keys
-tap A 20
-keys UP
-run 24
-keys
-tap A 20
 keys RIGHT
 run 30
 keys
-tap A 20
-keys RIGHT
-run 77
+tap B 20
+keys LEFT
+run 37
 keys
-tap A 20
+shot l106_walk
+keys LEFT
+run 73
+keys
+keys RIGHT
+run 49
+keys
+tap B 20
+tap A 30
+keys DOWN
+run 49
+keys
+tap B 20
+keys DOWN
+run 53
+keys
+tap B 20
+tap A 30
+shot l107_walk
+keys UP,LEFT
+run 67
+keys
+keys DOWN
+run 85
+keys
+keys DOWN,RIGHT
+run 26
+keys
+keys DOWN,RIGHT
+run 70
+keys
+shot l108_walk
+keys RIGHT
+run 71
+keys
+tap B 20
+tap A 30
+keys DOWN
+run 76
+keys
+tap B 20
+keys UP
+run 33
+keys
+tap B 20
+tap A 30
+keys UP
+run 66
+keys
+tap A 30
+shot l109_walk
+keys DOWN
+run 68
+keys
+tap B 20
+keys LEFT
+run 66
+keys
+tap A 30
+keys RIGHT
+run 79
+keys
+keys DOWN
+run 33
+keys
+shot l110_walk
+keys RIGHT
+run 40
+keys
+keys UP,LEFT
+run 66
+keys
+tap B 20
+keys UP
+run 87
+keys
+tap B 20
+keys UP
+run 53
+keys
+shot l111_walk
+keys LEFT
+run 48
+keys
+keys LEFT
+run 48
+keys
+keys DOWN
+run 50
+keys
+keys DOWN
+run 45
+keys
+shot l112_walk
+keys UP
+run 23
+keys
+keys DOWN
+run 64
+keys
+keys LEFT
+run 66
+keys
+tap B 20
+tap A 30
+keys RIGHT
+run 45
+keys
+shot l113_walk
+keys UP,LEFT
+run 20
+keys
+keys DOWN,RIGHT
+run 30
+keys
+tap A 30
+keys RIGHT
+run 45
+keys
+tap A 30
+keys DOWN,RIGHT
+run 62
+keys
+tap B 20
 shot l114_walk
-pc

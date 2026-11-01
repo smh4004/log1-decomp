@@ -1,158 +1,74 @@
-# Dragon Ball Z: The Legacy of Goku II (USA): disassembly and decompilation
+# Dragon Ball Z: The Legacy of Goku (USA): disassembly and decompilation
 
-A pret-style source tree for **Dragon Ball Z: The Legacy of Goku II (USA)** (GBA, `ALFE`, Webfoot 2003). It provides:
+A pret-style source tree for **Dragon Ball Z: The Legacy of Goku (USA)** (GBA, `ALGE`, Webfoot 2002). It provides:
 
 * **A matching disassembly.** `make` rebuilds the original 8 MB ROM byte for byte from labelled assembly and data.
 * **Shiftable source.** Every pointer is a symbol, so code and data can grow, shrink and move. This is tested by
   inserting padding before everything and playing the game through an automated route (37/37 checkpoints identical).
-* **Modding toolkit** (`USER_README.md`, `docs/modding.md`). `make extract` turns the game into about 8,300 editable files,
-  and `make modern` builds them back:
-  * **events**: a decompiler and compiler for all 291 event lists (1,811 steps: cutscenes, NPC talk, signs) with their
-    dialogue inline. Steps can be added and removed; text can be any length.
-  * **all 336 maps**: layers as CSV grids, tile lists, collision masks.
-  * **graphics**: 168 tile pages and 6,014 sprite images as PNG.
-  * **text**: UI strings; dialogue is in the events.
-  * **tables**: palette, EXP curve, areas, items, enemy stats (109 types) and enemy placement (666 spawns), as CSV.
-  * a WFZ compressor, so any of it can grow.
-* **A C decompilation.** Ghidra reference C for all 2,424 functions (`ref/`), and **267 functions run as GCC-compiled C** in a
-  `make DECOMP=2` ROM that plays the test routes identically to the original: 177 verified with ≥90% coverage, plus 90
-  tested with lower coverage. Each was checked for equivalence against the original machine code. Another 831 compile and
-  link but haven't been verified.
-* **Tooling.** A headless mGBA test harness (screenshots, breakpoints, memory watches, PC traces, CPU snapshots), and a
-  Unicorn equivalence tester.
-
-> **Want to make a mod? Start with [`USER_README.md`](USER_README.md).**
+* **Modding toolkit** (`USER_README.md`, `docs/modding.md`): every string the game points to (dialogue, story, menus,
+  names; 977) as one text file, and all 182 BIOS-compressed graphics blocks as raw bytes and tile-sheet PNGs, re-packed
+  with Huffman / LZ77 / run-length encoders on build. Text can grow.
+* **A C decompilation.** Ghidra reference C for all 865 functions (`ref/`), and **58 functions run as GCC-compiled C** in
+  `make decomp`, a ROM that plays all three test routes identically to the original. Each was checked for equivalence
+  against the original machine code first. Another 47 pass their tests but aren't whole-game clean yet, and 190 compile
+  but haven't been reached by a test.
+* **Tooling.** A headless mGBA harness (screenshots, breakpoints, memory watches, PC traces, call logs, CPU snapshots)
+  and a Unicorn equivalence tester.
 
 > **No ROM data is included.** Everything copyrighted is read at build time from your own `baserom.gba`
-> (SHA-1 `18e0715dec419f3501c301511530d2edcd590f8b`, the stand-alone USA cartridge). Share hacks as `.bps` patches, never as
-> ROMs or extracted assets.
+> (SHA-1 `a3c8c76742f11fc6a3f6e3fcca20992458cac0b5`, the stand-alone USA cartridge). Share hacks as `.bps` patches.
 
-This is the sister project of [buusfury-decomp](https://github.com/smh4004/buusfury-decomp): same Webfoot engine (an older
-version), same toolchain (ARM ADS 1.x C++), same tools. Everything game-specific is in `config/game.json` and
-`tools/assets/const.py`.
+Sister projects: [log2-decomp](https://github.com/smh4004/log2-decomp) (Legacy of Goku II) and
+[buusfury-decomp](https://github.com/smh4004/buusfury-decomp) (Buu's Fury). The tools are shared; everything
+game-specific is in `config/game.json` and `tools/assets/const.py`. This game is the oldest of the three: an older
+ARM compiler (`docs/toolchain.md`), no WFZ compression (it uses the GBA BIOS coders), and a small code base (64 KB).
 
----
-
-## Contents
-1. [Quick start](#quick-start)
-2. [What each build is for](#builds)
-3. [Repository tour](#tour)
-4. [How it was made](#process)
-5. [Tutorials](#tutorials)
-6. [Verifying anything yourself](#verify)
-7. [Known limits](#limits)
-
----
-
-<a name="quick-start"></a>
-## 1. Quick start
+## Quick start
 ```sh
-# Debian/Ubuntu
 sudo apt-get install gcc-arm-none-eabi binutils-arm-none-eabi make python3 python3-pip libmgba-dev libpng-dev zlib1g-dev
 pip install --break-system-packages capstone numpy pillow unicorn
-
-cp /path/to/your/dump.gba baserom.gba     # the USA ROM, SHA-1 above
-make && make compare                     # -> log2.gba: OK
-make decomp                              # -> log2_decomp.gba (verified C functions linked in)
+cp /path/to/your/dump.gba baserom.gba
+make && make compare          # -> log1.gba: OK
+make decomp                   # -> log1_decomp.gba (verified C linked in)
+make extract && make modern   # modding (see USER_README.md)
 ```
-Ghidra (11.x, Java 21) is only needed to **regenerate** the C (section 4.6).
 
-<a name="builds"></a>
-## 2. What each build is for
+## Builds
 | Command | Output | Use it to |
 |---|---|---|
-| `make` / `make compare` | `log2.gba` + SHA-1 check | Prove the source is complete |
-| `make SHIFT=0x100` / `make shift-test` | `log2_shift.gba` | Prove nothing depends on absolute addresses (everything after crt0 moves) |
-| `make decomp` (`DECOMP=1/2/3`) | `log2_decomp.gba` | Play the game with C functions in place of assembly (1 = verified, 2 = + tested, 3 = + untested, experimental) |
-| `make extract` / `make modern` / `make patch` | `assets/`, `log2_modern.gba`, `.bps` | Mod the game |
-| `make verify-mods` | | Self-test of the modding toolkit |
+| `make` / `make compare` | `log1.gba` + SHA-1 check | prove the source is complete |
+| `make shift-test` | `log1_shift.gba` | prove nothing depends on absolute addresses |
+| `make decomp` (`DECOMP=1/2/3`) | `log1_decomp.gba` | run C in place of assembly (2 and 3 are experimental) |
+| `make extract` / `modern` / `patch` / `verify-mods` | `assets/`, `log1_modern.gba`, `.bps` | mod the game |
 
-<a name="tour"></a>
-## 3. Repository tour
+## Repository tour
 | Path | What |
 |---|---|
-| `asm/` | code: `crt0.s`, `code_*.s` (Thumb/ARM, one file per ~8 KB), `iwram.s` (RW image run from IWRAM), `macros.inc` |
-| `data/` | `.rodata`: labels, symbolic pointers (`.4byte gUnknown_...`), `.incbin` of the rest from `baserom.gba` |
-| `src/` | decompiled C, one file per function (only the tested tiers are linked) |
-| `ref/` | Ghidra reference C for every function (read-only) |
-| `config/` | `game.json` (layout), `symbols.txt` (names), `script_natives.txt`, `regions.yaml` (byte map), decomp tier lists |
-| `tools/bfdis/` | the disassembler: `analyze.py` (code discovery), `emit.py`/`gen.py` (assembly), `ptrs.py` (pointers), `regions.py` |
-| `tools/wfz/` | WFZ decoder, compressor, scanner |
-| `tools/assets/`, `tools/scripts/` | modding toolkit |
+| `asm/`, `data/` | the disassembly (code; data with symbolic pointers and `.incbin` of the rest) |
+| `src/`, `ref/` | decompiled C (tested) and Ghidra reference C for every function |
+| `config/` | `game.json` (layout and per-game switches), `symbols.txt`, `regions.yaml`, decomp tiers |
+| `tools/bfdis/` | disassembler (`analyze`, `emit`, `gen`, `ptrs` pointer classifier, `lz` BIOS stream finder) |
+| `tools/assets/` | modding toolkit (`assets.py`, `bios.py` encoders, `apply.py`) |
 | `tools/decomp/`, `tools/ghidra/` | decompilation pipeline |
-| `tools/harness/` | headless emulator harness and routes |
-| `docs/` | `rom_map.md`, `shifting.md`, `decomp.md`, `modding.md`, `script_natives.md`, `progress.md` |
+| `tools/harness/` | emulator harness, routes, `shiftdiff.py`, `ramdiff.py` |
+| `docs/` | `rom_map.md`, `shifting.md`, `decomp.md`, `modding.md`, `toolchain.md`, `progress.md` |
 
-<a name="process"></a>
-## 4. How it was made
-The tools were first written for Buu's Fury and then parameterized; this section summarises each step for LoG2.
+## How it was made
+1. **Layout** (`docs/rom_map.md`): crt0, 59 KB of Thumb code with the ARM C library, ctor vector, veneers and vtables, 3 KB
+   more code, 7.6 MB of data. No RW image (the game copies its IWRAM routines itself).
+2. **Code discovery and matching assembly**: the shared disassembler found 864 functions; `make compare` matched on the
+   first build.
+3. **Relocation**: 9,400 pointers made symbolic. This game needed new rules (BIOS stream detection, movie and palette
+   data, method tables, pointer arrays, inline pointers); each came from tracing one shift-test difference back to one ROM
+   word (`docs/shifting.md`).
+4. **Decompilation**: Ghidra headless on the ELF, `autodecomp.py` (translation units, GCC, Unicorn equivalence on 2,868
+   snapshots), whole-game routes in game-loop time (`syncpc 0x080099F2`), `gamebisect.py` (7 culprits blocklisted).
+5. **Modding**: text from labels; BIOS Huffman/LZ77/RLE decoders and encoders for the graphics.
 
-### 4.1 Toolchain
-Same as Buu's Fury: ARM ADS 1.x C++ (`__call_via_rN` stubs at 0x08021D28, `push {r3,lr}` alignment, base-relative vtables,
-entry-relative `C$$pi_ctorvec`, armlink veneers into IWRAM, ADS switch tables). Assert strings name the sources
-(`K:\Source\AreaEntry.cpp`, `K:\Source\ByteCodeInterpreter\...`). The C can't be recompiled to matching bytes (ADS isn't
-redistributable), so the matching layer is assembly.
+## Verifying
+`make compare`, `make shift-test`, `python3 tools/decomp/autodecomp.py test`, the `decomp_*.txt` routes on
+`log1.gba` vs `log1_decomp.gba`, and `make verify-mods`.
 
-### 4.2 Map every byte (`docs/rom_map.md`)
-Header, crt0, code (0x158-0x28724, including ctor vector, veneers and vtables), `.rodata` up to 0x7FD6BC, the RW image
-(0xE7F bytes copied to IWRAM), padding. `tools/bfdis/regions.py` classifies all 8 MB.
-
-### 4.3 Find the code (`tools/bfdis/analyze.py`)
-Recursive descent from the entry point, constructors and vtables, then odd pointers, prologues and gaps, with confidence
-levels so a bad guess can be rolled back. Assert strings inside code gaps are recognised as data. 2,423 functions.
-
-### 4.4 Emit matching assembly (`gen.py`)
-Every instruction as source, literal pools as `.4byte label`, switch tables as label differences, vtables as
-`func - base`. One instruction needed a hand-kept raw encoding (`config/raw_insns.txt`). `make compare` matches.
-
-### 4.5 Make data symbolic (`tools/bfdis/ptrs.py`, `docs/shifting.md`)
-52,000 pointers in `.rodata` converted to labels with evidence rules; PCM audio, fonts and byte tables are recognised as
-non-pointer data. Verified by the shift test.
-
-### 4.6 Decompile (`docs/decomp.md`)
-Ghidra headless imports the ELF (all labels), fixes flow around veneers, exports C. `tools/decomp/autodecomp.py` turns each
-replaceable function into a translation unit, compiles it with GCC, and tests it against the original in Unicorn from
-real CPU snapshots captured on five routes (5,151 snapshots of 515 functions). Accepted functions are linked in place of
-the assembly by a 16-byte long jump, so no other byte moves; whole-game routes in game-loop time (`syncpc 0x08020D78`)
-catch the rest (`tools/decomp/gamebisect.py` found 5 more culprits, now in `config/decomp_blocklist.txt`).
-
-### 4.7 Assets and modding tools (`docs/modding.md`)
-Maps, tile pages, palette and WFZ are the same formats as Buu's Fury; the sprite record (12 bytes), event steps (ASCII text,
-compressed text, one-byte jumps) and every table were reverse-engineered for LoG2. 125 of 145 script natives are named.
-
-<a name="tutorials"></a>
-## 5. Tutorials
-**Name a function or object:** add `ADDRESS Name  # comment` to `config/symbols.txt`, run `python3 tools/bfdis/gen.py
-baserom.gba`, then `make compare`.
-
-**Change code in assembly:** edit `asm/code_*.s` and build with `make SHIFT=0` (non-matching is fine once you change
-behaviour). Everything is relocatable, so instructions can be added.
-
-**Mod the game:** `USER_README.md`.
-
-**Write new code in C:** add a `.c` file under `src/`, declare the original functions you call as `extern`, and point a
-pointer or a `bl` at it; the decomp build links C after the RW image.
-
-**Improve a decompiled function:** edit `src/<file>/<func>.c`, then `python3 tools/decomp/autodecomp.py test --only NAME`
-and `make decomp`.
-
-**Debug with the harness:** `tools/harness/harness ROM script outdir`; commands (`run`, `tap`, `shot`, `dump`, `bp`,
-`mem`, `watch`, `watchon`, `tracepc`, `guard`, `capture`, `syncpc`) are listed at the top of `tools/harness/harness.c`.
-
-<a name="verify"></a>
-## 6. Verifying anything yourself
-| Claim | Command |
-|---|---|
-| matching | `make compare` |
-| relocatable | `make shift-test` (and `tools/harness/shift_test.sh 0x2000`) |
-| C equivalence | `python3 tools/decomp/autodecomp.py test` (needs snapshots: harness `capture`, see `docs/decomp.md`) |
-| decomp ROM plays identically | compare `shot` hashes of `tools/harness/decomp_*.txt` on `log2.gba` and `log2_decomp.gba` |
-| modding toolkit | `make verify-mods` |
-
-<a name="limits"></a>
-## 7. Known limits
-* The C is GCC, not ADS: behaviourally tested, not byte-matching. Untested C is Ghidra's reading, not verified.
-* Capture routes cover the opening areas; functions used only later in the game stay untested until routes reach them.
-* 20 script natives are unnamed and about 25 names are marked "(guess)".
-* Enemy spawn records can be edited but not added; 16-colour and multi-part sprites aren't exported yet.
-* Field meanings marked "(inferred)" in the table notes come from values and code reading, not from source.
+## Known limits
+* The C is GCC, not the original compiler: behaviourally tested, not byte-matching.
+* Maps, palettes, dialogue tree fields, music and the movie codec have no editors yet (`docs/progress.md`).

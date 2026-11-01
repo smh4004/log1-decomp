@@ -8,7 +8,7 @@ Classes:
   switch      ADS switch offset tables
   vtable      base-relative C++ vtables, ctor vector (relative offsets)
   data        other data that sits inside the code area (strings, FP constants, tables)
-  wfz         WFZ-compressed container (header + bitstream)
+  wfz         compressed data: WFZ container (header + bitstream) or GBA BIOS Huffman/LZ77 stream
   rodata      uncompressed tables / raw assets in .rodata
   iwram_code / iwram_data   RW image copied to IWRAM by crt0
   padding     0xFF fill after the RW image / zero alignment
@@ -24,6 +24,9 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 d = open('baserom.gba', 'rb').read()
 db = pickle.load(open('.analysis/analysis.pickle', 'rb'))
 blocks = json.load(open('.analysis/wfz_blocks.json'))
+if os.path.exists('.analysis/lz_blocks.json'):           # GBA BIOS streams (bios_blocks games): also compressed
+    from game import BIOS_BLOCKS
+    if BIOS_BLOCKS: blocks += json.load(open('.analysis/lz_blocks.json'))
 IW_OFF, IW_VMA, IW_SIZE = db['iwram']
 N = len(d)
 C = ['unknown', 'header', 'code_thumb', 'code_arm', 'pool', 'switch', 'vtable', 'data', 'wfz', 'rodata',
