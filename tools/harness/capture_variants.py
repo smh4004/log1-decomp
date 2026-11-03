@@ -31,8 +31,8 @@ LEVELS = 0x114A8                     # gLevelTable: 25 x {exp, max_hp, power, ki
 STRONG = os.environ.get('STRONG') == '1'
 
 
-def make_rom(area, x, y):
-    d = bytearray(open('log1.gba', 'rb').read())
+def make_rom(area, x, y, src='log1.gba', dst=None):
+    d = bytearray(open(src, 'rb').read())
     if STRONG:
         # STRONG=1: level 1 gets 900 HP, power 60 and ki 40, so the random walk wins its fights (EXP, level-ups,
         # drops) instead of ending at the game-over screen
@@ -41,7 +41,7 @@ def make_rom(area, x, y):
     assert cb == 0x0800356D, 'unexpected warp record (rebuild log1.gba with make)'
     struct.pack_into('<4hBBHHH', d, WARP + 4, 0, 0, 0x7FFF, 0x7FFF, 3, d[WARP + 13], area, x, y)
     os.makedirs(OUT, exist_ok=True)
-    p = '%s/warp%02d%s.gba' % (OUT, area, 's' if STRONG else '')
+    p = dst or '%s/warp%02d%s.gba' % (OUT, area, 's' if STRONG else '')
     open(p, 'wb').write(d)
     return p
 

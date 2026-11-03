@@ -1,0 +1,318 @@
+# Random exploration in game-loop time (syncpc), for the whole-game check of the decomp build in every area
+# (tools/decomp/gamebisect.py with WARPS=...). Generated from tools/harness/make_explore.py seed 77, 6000 frames.
+syncpc 0x080099F2
+run 3290
+keys START
+run 8
+keys
+run 60
+keys START
+run 8
+keys
+run 90
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot w015
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot w030
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+shot w045
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+tap A 40
+keys RIGHT
+run 60
+keys
+run 10
+keys DOWN
+run 60
+keys
+run 10
+keys LEFT
+run 60
+keys
+run 10
+keys UP
+run 60
+shot w060
+keys
+run 10
+keys RIGHT
+run 60
+keys
+run 10
+keys DOWN
+run 60
+keys
+run 10
+tap START 60
+tap B 60
+keys
+tap A 40
+keys UP,LEFT
+run 24
+keys LEFT,B
+run 20
+keys
+tap R 10
+keys LEFT
+run 73
+keys LEFT
+run 59
+keys UP,LEFT
+run 80
+keys DOWN
+run 34
+shot w075
+keys DOWN,RIGHT
+run 81
+keys RIGHT,B
+run 11
+keys
+tap A 26
+keys
+tap A 78
+keys UP,LEFT,B
+run 11
+keys
+tap A 55
+keys UP
+run 77
+keys
+tap A 45
+keys
+tap START 40
+tap LEFT 20
+tap LEFT 20
+tap A 20
+tap UP 20
+tap B 30
+tap B 30
+shot w090
+tap START 40
+keys UP
+run 59
+keys UP
+run 73
+keys
+tap A 47
+keys
+tap SELECT 40
+tap B 30
+tap SELECT 30
+keys
+tap R 11
+keys
+tap A 61
+keys UP
+run 21
+keys
+tap L 30
+keys
+tap A 56
+keys
+tap A 29
+keys
+tap A 21
+keys DOWN
+run 69
+shot w105
+keys
+tap SELECT 40
+tap B 30
+tap SELECT 30
+keys
+tap A 35
+keys
+tap A 25
+keys RIGHT
+run 16
+keys
+tap A 56
+keys UP,LEFT,B
+run 36
+keys
+tap L 30
+keys UP,LEFT
+run 79
+keys
+tap A 21
+keys LEFT
+run 12
+keys
+tap R 13
+keys
+tap R 34
+keys UP,LEFT
+run 59
+shot w120
+keys RIGHT,B
+run 30
+keys UP,LEFT,B
+run 21
+keys
+tap A 74
+keys UP,LEFT
+run 34
+keys
+tap A 63
+keys
+tap R 34
+keys DOWN,LEFT
+run 78
+keys UP,LEFT
+run 81
+keys LEFT
+run 23
+keys
+tap START 40
+tap B 30
+tap B 30
+tap START 40
+keys
+tap A 59
+keys
+tap R 11
+shot w135
+keys
+tap A 57
+keys
+tap R 14
+keys UP
+run 53
+keys
+tap R 28
+keys DOWN
+run 48
+keys UP,B
+run 5
+keys
+tap A 51
+keys
+tap SELECT 40
+tap B 30
+tap SELECT 30
+keys DOWN
+run 10
+keys
+tap A 22
+keys UP,LEFT,B
+run 21
+keys
+tap A 54
+keys DOWN,LEFT
+run 15
+shot w150
+keys RIGHT
+run 71
+keys
+tap A 40
+keys DOWN,LEFT
+run 72
+keys RIGHT
+run 81
+keys UP,LEFT
+run 88
+keys RIGHT
+run 64
+keys UP,LEFT
+run 37
+keys UP,RIGHT
+run 30
+keys
+tap A 53
+keys RIGHT
+run 73
+keys DOWN
+run 85
+keys UP,LEFT
+run 11
+keys DOWN,LEFT
+run 77
+keys
+tap A 71
+keys UP,RIGHT
+run 79
+shot w165
+keys
+tap L 30
+keys DOWN,LEFT
+run 80
+keys UP,LEFT
+run 86
+keys UP
+run 66
+keys UP,LEFT
+run 57
+keys
+tap A 42
+keys LEFT
+run 28
+keys UP,RIGHT,B
+run 26
+keys
+tap L 30
+keys
+tap A 28
+keys DOWN,RIGHT
+run 13
+keys RIGHT,B
+run 32
+keys DOWN,RIGHT,B
+run 7
+keys
+tap SELECT 40
+tap B 30
+shot w180
+tap SELECT 30
+keys UP,RIGHT
+run 17
+keys DOWN
+run 78
+keys RIGHT,B
+run 38
+keys
+tap A 22
+keys
+

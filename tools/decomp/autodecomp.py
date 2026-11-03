@@ -183,7 +183,7 @@ def fix_names(c, f, declared, rng):
             if w is None and pre in ('_DAT_', 'Ram'): w = 4    # Ghidra's spelling for a 4-byte access
             if w is None: return None, 'width:' + name
             t = {1: 'undefined1', 2: 'undefined2', 4: 'undefined4'}[w]
-        if addr >= 0x08000000: return None, 'rom-abs:' + name
+        if 0x08000000 <= addr < 0x0A000000: return None, 'rom-abs:' + name
         defs.append('#define %s (*(%s volatile *)0x%08X)' % (name, t, addr))
     return c, defs
 
@@ -192,8 +192,9 @@ def make_tu(f, F, allnames, rng=None):
     c = f.get('c')
     if not c: return None, 'no-c'
     c = stack_frame(c)
+    code = re.sub(r'/\*.*?\*/|//[^\n]*', '', c, flags=re.S)       # (hand-written files explain these words in comments)
     for p in BAD:
-        if p in c: return None, 'pattern:' + p
+        if re.search(r'(?<![A-Za-z0-9_])' + re.escape(p), code): return None, 'pattern:' + p
     me = f['name']
     lines = ['#include "ghidra_types.h"']
     wide_locals = re.findall(r'^\s+undefined8\s+(\w+);', c, re.M)
@@ -229,7 +230,7 @@ def make_tu(f, F, allnames, rng=None):
         lines.append('extern %s volatile %s%s;' % (d[0], name, d[1]))
         if name.startswith(ABS_PREFIX) and addr:
             a = int(addr)
-            if a >= 0x08000000:
+            if 0x08000000 <= a < 0x0A000000:
                 # ROM data: refer to it through the label that contains it, so the address follows the data
                 # if the layout ever changes (the decomp build itself never moves an original byte)
                 sym = rom_symbol(a)

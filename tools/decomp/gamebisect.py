@@ -16,11 +16,27 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 os.chdir(ROOT)
 
 
+WARPS = [int(a) for a in os.environ.get('WARPS', '').split(',') if a]
+
+
 def shots(rom, route, out):
-    """Frame hash at every `shot` checkpoint of ROUTE."""
+    """Frame hash at every `shot` checkpoint of ROUTE. With WARPS=a,b,... (an env variable), ROUTE is instead played
+    once per area on a copy of ROM whose Kame House warp leads to that area (tools/harness/capture_variants.py:
+    one data record changed, the same in the original and the decomp ROM), and the hashes of all runs are compared."""
     os.makedirs(out, exist_ok=True)
-    r = subprocess.run(['tools/harness/harness', rom, route, out], capture_output=True, text=True).stdout
-    return [l.split()[5] for l in r.split('\n') if l.startswith('shot')]
+    roms = [(rom, None)]
+    if WARPS:
+        sys.path.insert(0, 'tools/harness')
+        import capture_variants as CV, json
+        roms = []
+        for a in WARPS:
+            x, y = json.load(open('assets/areas/area%02d.json' % a))['start']
+            roms.append((CV.make_rom(a, x, y, src=rom, dst='%s/warp%02d.gba' % (out, a)), a))
+    h = []
+    for r_, a in roms:
+        r = subprocess.run(['tools/harness/harness', r_, route, out], capture_output=True, text=True).stdout
+        h += ['%s:%s' % (a, l.split()[5]) for l in r.split('\n') if l.startswith('shot')]
+    return h
 
 
 def same(a, b):
