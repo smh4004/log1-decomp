@@ -8,7 +8,10 @@ code area and follows the caller's instructions until r0 is read (live) or overw
 returns before touching r0 passes the value on, so that counts as live. So does a tail call (`b f`), and so does any function
 whose address is taken (vtables, data pointers, literal pools), since callers through a pointer can't be enumerated.
 
-usage: r0live.py  -> writes .analysis/decomp/r0_dead.txt (functions whose r0 is provably unused)
+usage: r0live.py  -> writes .analysis/decomp/r0_dead.txt (functions whose r0 is provably unused) and
+                     r0_direct_dead.txt (unused by every direct caller; calls through pointers not considered)
+A call site whose function returns r0 unchanged to its own caller is followed up the call graph.
+site_dead(lr): is r0 unread after returning to lr (used by autodecomp.py for the return site in a snapshot)?
 """
 import os, sys, pickle, struct, collections
 from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
@@ -43,8 +46,39 @@ def bl_target(a):
     return None
 
 
+_SIGS = None
+
+
+def takes_args(f):
+    """Does f read r0 as an argument? From Ghidra's signature (functions.jsonl); unknown -> yes."""
+    global _SIGS
+    if _SIGS is None:
+        import json
+        _SIGS = {}
+        p = '.analysis/ghidra/functions.jsonl'
+        if os.path.exists(p):
+            for l in open(p):
+                x = json.loads(l); _SIGS[int(x['addr'], 16) if isinstance(x['addr'], str) else x['addr']] = x.get('sig') or ''
+    sig = _SIGS.get(f)
+    if not sig: return True
+    args = sig[sig.find('(') + 1:sig.rfind(')')].strip()
+    return args not in ('void', '')
+
+
+ret_seen = set()
+
+
 def live_after(a, depth=0, seen=None):
-    """Is r0 read on some path starting at a, before being written?"""
+    """Is r0 read on some path starting at a, before being written? True / False / 'ret' (not read here, but passed
+    back to this function's own caller on some path)"""
+    top = seen is None
+    if top: ret_seen.clear()
+    r = _live_after(a, depth, seen)
+    if top and r is False and ret_seen: r = 'ret'
+    return r
+
+
+def _live_after(a, depth=0, seen=None):
     seen = seen if seen is not None else set()
     while True:
         if a in seen or depth > 40: return False
@@ -53,17 +87,35 @@ def live_after(a, depth=0, seen=None):
         if i is None: return True                       # unknown: be conservative
         rd, wr = i.regs_access()
         mn = i.mnemonic
-        if mn == 'bl':                                  # a call: r0 is an argument (read) unless set first
-            return True if ARM_REG_R0 in rd else False  # bl itself doesn't read r0; the callee might: conservative
+        if mn == 'bl':                                  # a call with r0 still holding the value: it's the callee's first
+            return takes_args(i.operands[0].imm)        # argument (g(f()) compiles to `bl f; bl g`), unless g takes none
         if ARM_REG_R0 in rd: return True
-        if mn.startswith('pop') and 'pc' in i.op_str: return True     # returned to our caller
-        if mn == 'bx' or (mn.startswith('mov') and i.op_str.startswith('pc')): return True
+        if mn.startswith('pop') and 'pc' in i.op_str: return 'ret'    # returned to our caller: live if the caller's is
+        if mn == 'bx' or (mn.startswith('mov') and i.op_str.startswith('pc')): return 'ret'
         if ARM_REG_R0 in wr: return False
         if mn == 'b':
             a = i.operands[0].imm; depth += 1; continue
         if mn.startswith('b') and len(mn) in (3, 4) and i.operands and i.operands[0].type != ARM_OP_REG and mn not in ('bic', 'bics'):
-            if live_after(i.operands[0].imm, depth + 1, set(seen)): return True
+            r = _live_after(i.operands[0].imm, depth + 1, set(seen))
+            if r is True: return True
+            if r == 'ret': ret_seen.add(1)
         a += i.size; depth += 1
+
+
+_DEAD = None
+
+
+def site_dead(lr):
+    global _DEAD, _FUNCS
+    if _DEAD is None:
+        _DEAD = {int(l, 16) for l in open('.analysis/decomp/r0_dead.txt')}
+        _FUNCS = sorted(db['funcs'])
+    v = live_after(lr & ~1)
+    if v is False: return True
+    if v == 'ret':
+        import bisect
+        return _FUNCS[bisect.bisect_right(_FUNCS, lr & ~1) - 1] in _DEAD
+    return False
 
 
 def main():
@@ -91,7 +143,7 @@ def main():
             if i is not None and i.mnemonic == 'ldr' and len(i.operands) == 2 and i.operands[1].mem.base != 0 \
                     and 'pc' not in i.op_str and 'sp' not in i.op_str:
                 k = i.operands[1].mem.disp; break
-        live = live_after(c + 4)
+        live = live_after(c + 4) is not False       # passing it on through a virtual call: assume read
         if k is None:
             unknown_slot |= live
         else:
@@ -105,6 +157,7 @@ def main():
     for p in glob.glob('data/*.s') + glob.glob('asm/iwram.s'):
         for m in re.finditer(r'\.4byte (?:sub|_)([0-9A-F]{8})(?: \+ 1)?\b', open(p).read()):
             used.add(int(m.group(1), 16))
+    addr_taken = set(used)
     # tail calls
     for a, (m, sz) in insn.items():
         if m == 't' and sz == 2:
@@ -116,14 +169,51 @@ def main():
                 off = h & 0xFF; off = off - 0x100 if off & 0x80 else off; t = a + 4 + off * 2
                 if t in db['funcs']: used.add(t)
     vt_targets = {t for e, (b, t, m) in db['vt_ents'].items()}
+    funcs = sorted(db['funcs'])
+    import bisect
+    def owner(a): return funcs[bisect.bisect_right(funcs, a) - 1]
+    tails = collections.defaultdict(list)          # tail calls: target -> functions that end by jumping to it
+    for a, (m, sz) in insn.items():
+        if m == 't' and sz == 2:
+            h = struct.unpack_from('<H', d, a - ROM)[0]
+            if (h >> 11) == 0x1C:
+                off = h & 0x7FF; off = off - 0x800 if off & 0x400 else off; t = a + 4 + off * 2
+                if t in db['funcs'] and owner(a) != t: tails[t].append(owner(a))
+            elif (h >> 12) == 0xD and ((h >> 8) & 0xF) < 0xE:
+                off = h & 0xFF; off = off - 0x100 if off & 0x80 else off; t = a + 4 + off * 2
+                if t in db['funcs'] and owner(a) != t: tails[t].append(owner(a))
+    memo = {}
+    ignore_taken = [False]
+    def fn_live(f):
+        """Is f's r0 read by anyone? A call site that returns r0 unchanged to its own caller is live only if that
+        function's r0 is live (followed up the call graph; a cycle counts as not read, since a real read would show
+        up on some other path)."""
+        if f in memo: return memo[f]
+        memo[f] = False
+        if f in addr_taken and not ignore_taken[0]: memo[f] = True; return True
+        r = False
+        for c in called.get(f, []):
+            v = live_after(c + 4)
+            if v is True or (v == 'ret' and fn_live(owner(c))): r = True; break
+        if not r:
+            r = any(fn_live(g) for g in tails.get(f, []))
+        memo[f] = r
+        return r
     print('virtual slots seen:', len(slot_live), 'live:', sum(slot_live.values()), 'call via unknown slot live:', unknown_slot)
     dead = []
     for f in db['funcs']:
-        if f in used: continue
-        if not called.get(f) and not any(t == f for t in vt_targets): continue
-        if not any(live_after(c + 4) for c in called[f]): dead.append(f)
+        if f in addr_taken: continue
+        if not called.get(f) and not tails.get(f) and f not in vt_targets: continue
+        if not fn_live(f): dead.append(f)
     os.makedirs('.analysis/decomp', exist_ok=True)
     open('.analysis/decomp/r0_dead.txt', 'w').write(''.join('%08X\n' % f for f in sorted(dead)))
+    # Second list: functions whose r0 no *direct* caller reads (bl / tail call), ignoring calls through pointers.
+    # autodecomp.py accepts an r0 difference for these only if the return site in that snapshot (its LR) doesn't
+    # read r0 either ('equal-r0unread').
+    memo.clear(); ignore_taken[0] = True
+    direct = [f for f in db['funcs'] if not fn_live(f)]
+    open('.analysis/decomp/r0_direct_dead.txt', 'w').write(''.join('%08X\n' % f for f in sorted(direct)))
+    print('r0 unused by every direct caller:', len(direct))
     print('functions:', len(db['funcs']), 'address taken / tail-called:', len(used), 'r0 provably unused:', len(dead))
 
 

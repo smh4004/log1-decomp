@@ -7,3 +7,5 @@ sub_080045AE  passes the snapshot tests but changes game output on tools/harness
 sub_0800946E  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
 sub_08009486  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
 sub_08009626  passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py)
+sub_08000520  no C equivalent: entered by a branch from inside another function and returns through that function's stack frame (pop {r4, pc} without a push)
+sub_0800E8A0  no C equivalent: its body continues in sub_0800E8B2 (reached by bl), which uses its registers and returns from its stack frame
