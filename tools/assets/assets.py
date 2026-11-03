@@ -22,6 +22,7 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   story     assets/story/quests.json      the 75 quests: tasks and what happens when they are done (quests.py)
   sprites   assets/sprites/NAME.png       character sprite sheets, 19 rows x 4 directions (sprites.py)
   sound     assets/sound/sampleNN.wav     the 20 instrument / sound samples, any length and rate (sound.py)
+  music     assets/music/songNN.txt       the 18 songs as tracker text: tempo, order, patterns, notes (music.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -37,6 +38,7 @@ import dialogue as DLG
 import quests as QST
 import sprites as SPR
 import sound as SND
+import music as MUS
 from const import ROM, RODATA
 
 
@@ -152,6 +154,7 @@ def extract(rom, out):
     QST.extract(d, out, reg)
     SPR.extract(d, out, reg, AR.sprites(d))
     SND.extract(d, out, reg)
+    MUS.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -227,6 +230,8 @@ def build(rom, src, out):
             SPR.build(d, a, path, ctx)
         elif k in ('sample', 'samples'):
             SND.build(d, a, path, ctx, src)
+        elif k == 'music':
+            MUS.build(d, a, path, ctx)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))

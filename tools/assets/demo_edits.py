@@ -15,13 +15,15 @@
              1234 EXP (a new give_exp action)
   9. sprites: Goku's sprite sheet gets two colours swapped (orange gi <-> blue undershirt indexes 6 and 13)
   10. sound: sample 9 (used by the title music) is replaced by a longer 440 Hz tone (it moves to the end of the data)
-`demo_edits.py dialogue` / `story` / `sprites` / `sound` apply only 7 / 8 / 9 / 10 (the other edits change where Goku walks on the test routes)."""
+  11. music: the title song (song 15) is transposed up 5 semitones
+`demo_edits.py dialogue` / `story` / `sprites` / `sound` / `music` apply only 7 / 8 / 9 / 10 / 11;
+`demo_edits.py music_same` only appends an unused copy of a pattern to song 15 (the song moves; it must sound the same) (the other edits change where Goku walks on the test routes)."""
 import os
 import numpy as np
 from PIL import Image
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import sys
-ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue` / `story` / `sprites` / `sound`: only edit 7 / 8 / 9 / 10
+ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue` / `story` / `sprites` / `sound` / `music` / `music_same`
 if ONLY is None:
     p = 'assets/text/strings.txt'; s = open(p, encoding='utf-8').read()
     old = 'gUnknown_085C2E1A\tOur story begins with our humble hero, Goku.'
@@ -82,4 +84,18 @@ if ONLY in (None, 'sound'):
     tone = (np.sin(2 * np.pi * 440 * t / rate) * 100 + 128).astype(np.uint8)
     with wave.open('assets/sound/sample09.wav', 'wb') as w:
         w.setnchannels(1); w.setsampwidth(1); w.setframerate(rate); w.writeframes(tone.tobytes())
+if ONLY in (None, 'music', 'music_same'):
+    import re
+    p = 'assets/music/song15.txt'; s = open(p).read()
+    if ONLY == 'music_same':
+        n = len(re.findall(r'^pattern ', s, re.M))
+        pat0 = s[s.index('pattern 0 '):].split('\npattern ')[0]
+        s = s.rstrip('\n') + '\n\n' + pat0.replace('pattern 0 ', 'pattern %d ' % n, 1) + '\n'
+    else:
+        names = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-']
+        def up(m):
+            v = names.index(m.group(1)) + 12 * int(m.group(2)) + 5
+            return '%s%d' % (names[v % 12], v // 12)
+        s = re.sub(r'(?<= )([A-G][-#])(\d)(?= )', up, s)
+    open(p, 'w').write(s)
 print('demo edits applied; now run: make modern')
