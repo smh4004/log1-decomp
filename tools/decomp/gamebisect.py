@@ -9,7 +9,7 @@ tools/harness/decomp_route.txt), not video frames. The list is split
 into JOBS chunks, which are bisected in parallel (each in its own build directory) down to single culprit functions.
 Prints the culprits and writes them to build/LIST.bad. The decomp build moves no original byte, so any other difference comes from the C code.
 """
-import sys, os, subprocess
+import sys, os, subprocess, json
 from concurrent.futures import ProcessPoolExecutor
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -24,7 +24,7 @@ def shots(rom, route, out):
     once per area on a copy of ROM whose Kame House warp leads to that area (tools/harness/capture_variants.py:
     one data record changed, the same in the original and the decomp ROM), and the hashes of all runs are compared."""
     os.makedirs(out, exist_ok=True)
-    roms = [(rom, None)]
+    roms = [(rom, '-')]
     if WARPS:
         sys.path.insert(0, 'tools/harness')
         import capture_variants as CV, json
@@ -39,8 +39,20 @@ def shots(rom, route, out):
     return h
 
 
+HORIZON = json.load(open(os.environ['HORIZON'])) if os.environ.get('HORIZON') else None
+ROUTE = None
+
+
 def same(a, b):
-    return a == b
+    """equal at every checkpoint, or (HORIZON=build/horizon.json from timing_horizon.py) at every checkpoint before
+    the point where a pure timing change already changes the game"""
+    if HORIZON is None or ROUTE not in HORIZON: return a == b
+    if len(a) != len(b): return False
+    h, seen = HORIZON[ROUTE], {}
+    for x, y in zip(a, b):
+        g = x.split(':')[0]; i = seen.get(g, 0); seen[g] = i + 1
+        if i < h.get(g, 10 ** 6) and x != y: return False
+    return True
 
 
 def good(sub, route, ref, w):
@@ -56,6 +68,7 @@ def good(sub, route, ref, w):
 
 def worker(args):
     chunk, route, ref, w = args
+    global ROUTE; ROUTE = route
     bad = []
     def search(sub):
         if good(sub, route, ref, w): return
@@ -68,7 +81,9 @@ def worker(args):
 
 
 def main():
+    global ROUTE
     lst, route = sys.argv[1], sys.argv[2]
+    ROUTE = route
     jobs = int(sys.argv[3]) if len(sys.argv) > 3 else 4
     names = [l.strip() for l in open(lst) if l.strip()]
     os.makedirs('build', exist_ok=True)
