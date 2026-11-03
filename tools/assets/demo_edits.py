@@ -6,7 +6,9 @@
   3. palette: Kame House's area palette (gUnknown_086AB884) gets red and blue swapped (the sea turns red)
   4. map:    area 0 (Kame House island) gets a 6x4 patch of sand tiles in the sea, bottom-left of the island, on the
              BG2 layer, and the patch is marked walkable
-  5. tables: level 1 max HP 105 -> 999 (levels.csv); the snake gets 30 HP instead of 3 (enemies.csv)"""
+  5. tables: level 1 max HP 105 -> 999 (levels.csv); the snake gets 30 HP instead of 3 and the wolf 777 (enemies.csv)
+  6. areas:  area 0 gets a wolf on the sand patch (an enemy where there were none) and a new warp zone right of the
+             spot where the opening scene leaves Goku, leading to the forest by Goku's house (area 2)"""
 import os
 import numpy as np
 from PIL import Image
@@ -34,9 +36,15 @@ for layer in t.getroot().findall('layer'):
     data.text = '\n' + ',\n'.join(','.join(r) for r in rows) + '\n'
 t.write(p, encoding='UTF-8', xml_declaration=True)
 import csv
-for p, key, col, val in (('assets/tables/levels.csv', 'level', 'max_hp', '999'), ('assets/tables/enemies.csv', 'name', 'hp', '30')):
+for p, row, col, val in (('assets/tables/levels.csv', 0, 'max_hp', '999'), ('assets/tables/enemies.csv', 1, 'hp', '30'),
+                         ('assets/tables/enemies.csv', 2, 'hp', '777')):
     rows = list(csv.DictReader(open(p, newline='')))
-    rows[0 if key == 'level' else 1][col] = val
+    rows[row][col] = val
     with open(p, 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
+import json
+p = 'assets/areas/area00.json'; a = json.load(open(p))
+a['actors'].append({'x': 48, 'y': 256, 'sprite': 'wolf', 'show': 0, 'flag': 0, 'kind': 2, 'param': 0, 'b10': 0, 'b11': 0})
+a['triggers'].append({'kind': 'warp', 'rect': [300, 200, 360, 280], 'mode': 1, 'b13': 0, 'to_area': 2, 'to_x': 632, 'to_y': 384})
+open(p, 'w').write(json.dumps(a, indent=1))
 print('demo edits applied; now run: make modern')

@@ -5,7 +5,8 @@
   3. demo_edits.py + `make modern`, then in the emulator: the edited story text is in the ROM, the title screen shows the
      re-packed logo tiles (screen differs from the original), the smoke route still reaches the first area and the menu,
      the area palette edit shows in game, the map edit (tiles + walkable mask) is in the ROM, the level-table edit
-     gives the player 999 max HP in game, and the enemy-table edit is in the ROM
+     gives the player 999 max HP in game, an added wolf is created with the edited enemy HP, and a new warp zone
+     takes the player to another area
 Exits non-zero on any failure."""
 import os, sys, subprocess, shutil, hashlib
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -54,6 +55,17 @@ check('map edit: area 0 patch tiles and walkable mask in the ROM',
 open('build_modern/hp.txt', 'w').write(open('tools/harness/smoke.txt').read() + '\nmem 030007CC 4\n')
 out = run('tools/harness/harness log1_modern.gba build_modern/hp.txt build_modern/verify_hp')
 check('level table edit: the player has 999 max HP in game', 'mem 030007cc: 000003e7' in out)
-import struct
+import struct, re
 check('enemy table edit: snake HP 30 in the ROM', struct.unpack_from('<i', rom, 0x6B6094 + 0x40 + 0x38)[0] == 30)
+open('build_modern/f.txt', 'w').write('08006D90\n')
+route = open('tools/harness/smoke.txt').read().split('shot s16')[0]
+open('build_modern/area.txt', 'w').write('hitlog build_modern/f.txt\n' + route + 'keys RIGHT\nrun 60\nkeys\nrun 200\nmem 030005FC 4\n')
+out = run('tools/harness/harness log1_modern.gba build_modern/area.txt build_modern/verify_area')
+wolf = [int(m.group(1), 16) for m in re.finditer(r'hit 08006d90 \S+ \d+ r0-r3 (\w+) 00000002 00000002', out)]
+check('area edit: the added wolf is created in area 0', bool(wolf))
+if wolf:
+    open('build_modern/hp2.txt', 'w').write(route + 'mem %08X 4\n' % (wolf[0] + 0x4C))
+    out2 = run('tools/harness/harness log1_modern.gba build_modern/hp2.txt build_modern/verify_hp2')
+    check('enemy table edit: that wolf has 777 HP in game', 'mem %08x: 00000309' % (wolf[0] + 0x4C) in out2)
+check('area edit: the new warp zone leads to area 2', re.search(r'mem 030005fc: 00000002', out) is not None)
 print('ALL OK' if ok else 'SOME CHECKS FAILED'); sys.exit(0 if ok else 1)

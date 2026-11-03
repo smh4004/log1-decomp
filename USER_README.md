@@ -1,7 +1,7 @@
 # User guide: making mods for Dragon Ball Z: The Legacy of Goku
 
-You can change all of the game's text, its compressed graphics and palettes, its maps, enemy stats and the player's
-levels, build a playable ROM, and share it as a patch, without knowing assembly or C.
+You can change all of the game's text, its compressed graphics and palettes, its maps, who and what is in each area
+(characters, enemies, warps), enemy stats and the player's levels, build a playable ROM, and share it as a patch, without knowing assembly or C.
 
 ## 1. Setup (once)
 ```sh
@@ -62,13 +62,27 @@ tile set's PNG in `assets/gfx/blocks/`.
 * `levels.csv`: the player's 25 levels: `exp` needed, `max_hp`, `power`, `ki`.
 Edit numbers only; keep the rows. Spreadsheet programs open these files; save as CSV.
 
-## 8. Testing and sharing
+## 8. Who and what is in each area (`assets/areas/areaNN.json`)
+One JSON text file per area (open with any text editor; keep the commas and brackets valid). Positions are in pixels
+(a tile is 8 pixels; the map's tile grid in Tiled shows x/y in tiles, so multiply by 8).
+* `actors`: characters and enemies. `sprite` is a name from `assets/areas/SPRITES.txt`. `kind` 2 = enemy (it uses the
+  `enemies.csv` row with the same name, e.g. `wolf`); 0 or 1 = a character, `param` = what they say. `show` 0 = always,
+  1 = only until story flag `flag` is set, 2 = only after. Copy a line to add one, delete a line to remove one.
+* `triggers`: zones (`rect` = x1, y1, x2, y2). `warp` takes the player to `to_area` at `to_x`, `to_y`; `hp_zone`
+  changes HP by `hp` every second inside it; `event` starts a conversation; `message` shows a text. Edit the numbers,
+  or add a new `warp`/`hp_zone`/`event` line without a `label`. Example (a warp to the forest by Goku's house):
+  `{"kind": "warp", "rect": [300, 200, 360, 280], "mode": 1, "b13": 0, "to_area": 2, "to_x": 632, "to_y": 384}`
+* `pickups`, `objects`: items to find and scenery objects. `music` = the area's music track.
+Area numbers match the map files (`area02.json` = `area02.tmx`); `start` is a safe position in each area to warp to.
+
+## 9. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
 * `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
-  a palette, a map and a table edit.
+  a palette, a map, a table and an area edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 9. Limits
-* No editors yet for area exits, enemy placement, sprite sheets, music or the intro movies (see `docs/progress.md`).
+## 10. Limits
+* No editors yet for sprite sheets, the dialogue tree, music or the intro movies (see `docs/progress.md`). New areas
+  can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

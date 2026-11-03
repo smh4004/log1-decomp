@@ -16,6 +16,7 @@ make verify-mods      # self-test
 | Palettes (every one those images and the areas use) | `assets/palettes/LABEL.pal` | `assets.py` |
 | The 42 area maps (3 tile layers + walkable/mask layers) | `assets/maps/areaNN.tmx` (Tiled) | `tools/assets/maps.py` |
 | Enemy stats, player level table | `assets/tables/enemies.csv`, `levels.csv` | `tools/assets/tables.py` |
+| What is in each area: characters, enemies, pickups, objects, warps and other trigger zones | `assets/areas/areaNN.json` | `tools/assets/areas.py` |
 
 ## Text
 `strings.txt` lists every labelled object in `.rodata` that starts with a C string (at least 3 printable characters,
@@ -61,15 +62,28 @@ masks (the first is where the player can walk). Its tiles are the area tile set 
 slot 346 (slots 0-145 hold the text font). Each `areaNN.tmx` has layers `bg3 (bottom)`, `bg2`, `bg1 (top)` (tile gid =
 slot + 1, with Tiled's flip flags) and `walkable`, `mask1`, `mask2` (the red flag tile = set). Edited screens used once
 are rewritten in place; screens shared with another place (14 are) and empty screens that get tiles become new objects,
-and only that layer and position's pointer changes. Map sizes can't change. The area records' other fields (exits,
-objects, `+0x14`/`+0x18`) are not decoded yet.
+and only that layer and position's pointer changes. Map sizes can't change. What stands in an area is in `areas/`
+(next section); the record's `+0x18` byte table is not decoded yet.
+
+## Areas: characters, enemies, warps
+Field-by-field format in the docstring of `tools/assets/areas.py`. Each area record's `+0x14` points to an info block
+that the area loader (0x08001FA8, also what warps call) walks: music track, a list of actors (12 bytes: position, sprite set, show-if story
+flag, kind 2 = enemy, otherwise a character and what they say), pickups (8 bytes, `sub_0800D1A0`), objects (8 bytes,
+`sub_0800697E`), and a list of pointers to trigger zones: rectangles with a callback (warp `sub_0800356C`: area and
+position; HP zone `sub_080042B4`: HP change per second; conversation `sub_080061B0`; message `sub_080061D0`). Enemy
+actors use the enemy table row whose sprite set they name (the wolf sprite gives row 2, `wolf`).
+
+Build rules: lists that change are rewritten (moved to the appendix if they grow; their count is patched); trigger
+records are edited in place (not their callback); new warps, HP zones and conversations become new records and the
+area's trigger list is rewritten. `make verify-mods` checks in the emulator that an added wolf appears with the HP from
+`enemies.csv` and that an added warp zone takes Goku from Kame House to the forest.
 
 ## Tables
 `tools/assets/tables.py` documents the fields. `enemies.csv` is `gEnemyTable` (0x086B6094, 34 entries of 0x40 bytes,
 read by the enemy constructor 0x08006D90): exp, hp, defense (subtracted in full, by half or by a quarter from each hit,
 0x08007352), power and 17 unnamed AI/movement values. `levels.csv` is the player's level table (0x080114A8, 25 rows):
-EXP needed, max HP, power and the ki counter. Both are written in place. The level table is checked in game by
-`make verify-mods`; the enemy table only in the ROM so far (the test routes don't reach an enemy).
+EXP needed, max HP, power and the ki counter. Both are written in place and checked in game by `make verify-mods` (max HP of the player; HP of an
+added wolf).
 
 ## How it fits together
 Same as the sequels: `assets.py extract` writes the files and `assets/manifest.json` (SHA-1 per file); `assets.py build`
@@ -77,6 +91,6 @@ turns changed files into overrides, `tools/assets/apply.py` splices them into a 
 build links `log1_modern.gba`. This works because every pointer in the data is a symbol (`docs/shifting.md`).
 
 ## Not covered yet
-Area exits/objects and enemy placement, the dialogue tree structure (speaker/next fields), sprite sheets, music and the
+The area `+0x18` byte table, what the 17 enemy AI values do, the dialogue tree structure (speaker/next fields), sprite sheets, music and the
 movie codec. The data is all reachable
 from the disassembly (`data/*.s`), and the code that reads it is in `ref/` and `src/`.

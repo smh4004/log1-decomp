@@ -32,6 +32,9 @@ routine from 0x08008840 to 0x03003D70).
 | 0x080114A8 | player level table: 25 x {exp, max HP, power, ki} (`tools/assets/tables.py`) |
 | 0x08019BC0-0x08142380 | 1,012 map screens, 30x20 u16 tile entries each (`tools/assets/maps.py`) |
 | 0x081C7C48 | area table: 42 x 0x34-byte records (pointer list at 0x081CA09C) |
+| 0x081C84D0.. / 0x081C9214.. | area actor lists (12-byte entries) / area info blocks (0x2C bytes; `tools/assets/areas.py`) |
+| 0x086B0ED4-0x086B2C8C | trigger zone records (warps, HP zones, events, messages) |
+| 0x080109F0 | 109 pointers to character sprite set names |
 | 0x085C219C | full-screen picture table: {palette, data, flags} triples |
 | 0x086AB734 / 0x086AB884 | area tile set descriptors {data, flags} / area palettes (256 colours each) |
 | 0x086B6094 | enemy table: 34 x 0x40 bytes (exp, AI values, power, hp, defense) |
@@ -46,5 +49,6 @@ routine from 0x08008840 to 0x03003D70).
 | 0x08009524 | `Decompress(src, flags)`: bit 4 Huffman (swi 0x13), bit 3 LZ77 (swi 0x11), bit 2 run-length (swi 0x14), bit 1 Diff16 (swi 0x18), bit 0 Diff8 (swi 0x16) |
 | 0x08006D90 | object constructor: player (from the level stats) or enemy (from the enemy table) |
 | 0x08007352 | apply a hit: defense reduction, HP |
+| 0x08001FA8 | area loader `(area, position)`: music, actors (0x080058D6), pickups (0x0800D1A0), objects (0x0800697E); warps (0x0800356C) call it |
 | 0x08009744 | game state switch (calls the old state's exit and the new state's enter method) |
 | 0x080099B6 | `WaitForVBlank` (harness `syncpc 0x080099F2`) |

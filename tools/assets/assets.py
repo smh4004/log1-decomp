@@ -17,6 +17,7 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
                                           per colour, 0-255). Same number of colours; written back in place.
   maps      assets/maps/areaNN.tmx        the 42 areas as Tiled maps: 3 tile layers + walkable/mask layers (maps.py)
   tables    assets/tables/*.csv           enemy stats and the player's level table (tables.py)
+  areas     assets/areas/areaNN.json      characters, enemies, pickups, objects and trigger zones (warps...) (areas.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -27,6 +28,7 @@ import bios
 import gfxinfo as G
 import maps as M
 import tables as T
+import areas as AR
 from const import ROM, RODATA
 
 
@@ -135,6 +137,7 @@ def extract(rom, out):
         reg('palette:%s' % lab, p, kind='palette', start=po, colours=n)
     M.extract(d, out, reg, decoded, {b[0] for b in blks})
     T.extract(d, out, reg)
+    AR.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -159,7 +162,10 @@ def build(rom, src, out):
     def new(label, data):
         fn = os.path.join(out, 'new_%s.bin' % label); open(fn, 'wb').write(data)
         ov.append({'new': label, 'file': fn, 'size': len(data)}); return label
-    ctx = dict(put=put, put_s=put_s, new=new)
+    def new_s(label, text, size):
+        fn = os.path.join(out, 'new_%s.s' % label); open(fn, 'w').write(text)
+        ov.append({'new': label, 'file': fn, 'size': size}); return label
+    ctx = dict(put=put, put_s=put_s, new=new, new_s=new_s)
     for name, a in man['assets'].items():
         path = os.path.join(src, a['file'])
         if sha(path) == a['sha1']: continue
@@ -197,6 +203,8 @@ def build(rom, src, out):
             M.build(d, a, path, ctx)
         elif k == 'table':
             T.build(d, a, path, put)
+        elif k == 'area':
+            AR.build(d, a, path, ctx)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))
