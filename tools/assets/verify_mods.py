@@ -6,7 +6,7 @@
      re-packed logo tiles (screen differs from the original), the smoke route still reaches the first area and the menu,
      the area palette edit shows in game, the map edit (tiles + walkable mask) is in the ROM, the level-table edit
      gives the player 999 max HP in game, an added wolf is created with the edited enemy HP, and a new warp zone
-     takes the player to another area, and an edited conversation shows its rewritten and added lines
+     takes the player to another area, an edited conversation shows its rewritten and added lines, and an edited quest completes and gives its new EXP reward
 Exits non-zero on any failure."""
 import os, sys, subprocess, shutil, hashlib
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -83,4 +83,11 @@ for m in re.finditer(r'hit 0800930a \S+ \d+ r0-r3 \w+ (\w+)', out):
     if 0 <= a < len(rom): shown.append(rom[a:rom.index(b'\0', a)])
 check('dialogue edit: the rewritten line is shown in game', b'MOD TEST: Hey Gohan, this line was edited and grew longer!' in shown)
 check('dialogue edit: the added line is shown in game', b'MOD TEST: a brand new line from Master Roshi.' in shown)
+shutil.rmtree('assets', ignore_errors=True)
+run('make -s extract && python3 tools/assets/demo_edits.py story && make -s modern')
+open('build_modern/exp.txt', 'w').write(open('tools/harness/long.txt').read() + '\nmem 03000038 4\nmem 030007D8 4\n')
+out = run('tools/harness/harness log1_modern.gba build_modern/exp.txt build_modern/verify_exp')
+check('story edit: quest 1 completes and its new action gives 1234 EXP',
+      re.search(r'mem 03000038: \w{6}(\w\w)', out) and int(re.search(r'mem 03000038: \w{6}(\w\w)', out).group(1), 16) & 2
+      and 'mem 030007d8: 000004d2' in out)
 print('ALL OK' if ok else 'SOME CHECKS FAILED'); sys.exit(0 if ok else 1)

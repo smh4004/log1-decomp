@@ -12,6 +12,7 @@ make verify-mods      # self-test
 | What | Files | Tool |
 |---|---|---|
 | Conversations (80 sets, 988 lines: speaker, next line, text) | `assets/dialogue/setNN.txt` | `tools/assets/dialogue.py` |
+| The story: 75 quests, their tasks and their results | `assets/story/quests.json` | `tools/assets/quests.py` |
 | All other text the game points to: story, menus, names | `assets/text/strings.txt` | `tools/assets/assets.py` |
 | Graphics and other packed data (182 BIOS-compressed blocks), drawn in their real colours | `assets/gfx/blocks/LABEL.bin` + `LABEL.png` | `tools/assets/assets.py`, `bios.py`, `gfxinfo.py` |
 | Palettes (every one those images and the areas use) | `assets/palettes/LABEL.pal` | `assets.py` |
@@ -36,6 +37,20 @@ changed. Changed text becomes a new string; the array is rewritten in place, or 
 it grows. `make verify-mods` plays Krillin's first conversation with a rewritten and an added line.
 
 Texts that only conversations point to are no longer in `strings.txt` (one place to edit each text).
+
+## Quests (the story)
+The story is data. `gQuestTable` (0x085439E0) points to 75 quest records `{name, task count, tasks, action count,
+actions}`; tasks and actions are small C++ objects `{vtable, fields}` whose vtable is their type (27 types, listed with
+their fields in `tools/assets/quests.py`). The game sends events to every task: 0 = talked to a character (its sprite
+set), 1 = a quest object was used, 2 = an enemy died, 3 = a conversation reached an entry, 4 = a quest was done
+(`sub_08005478`). A task that matches sets its bit; a quest whose tasks are all set is done, its actions run in order
+(EXP, pickups, conversations, warps, conversation entries for next time, walkable areas, music...), and event 4 goes
+out. Area actors hide or appear by quest: their `flag` is an index into `quest_of_flag` (0x08543988).
+
+`quests.json` keeps each object's `label`; fields edit in place; lists of tasks and actions can be reordered, cut or
+extended, and new objects of any type are created (list moved if it grows, count patched). `make verify-mods` turns
+quest 1 into "pick up the magazine" with an extra `give_exp` of 1234 and checks in the emulator that it completes and
+the EXP arrives.
 
 ## Compressed blocks
 The game unpacks graphics with `Decompress(src, flags)` (0x08009524), which chains the BIOS decoders: Huffman (swi 0x13),
@@ -104,6 +119,6 @@ turns changed files into overrides, `tools/assets/apply.py` splices them into a 
 build links `log1_modern.gba`. This works because every pointer in the data is a symbol (`docs/shifting.md`).
 
 ## Not covered yet
-The area `+0x18` byte table, what the 17 enemy AI values do, the story scripts that move conversation entries, (speaker/next fields), sprite sheets, music and the
+The area `+0x18` byte table, what the 17 enemy AI values do,  (speaker/next fields), sprite sheets, music and the
 movie codec. The data is all reachable
 from the disassembly (`data/*.s`), and the code that reads it is in `ref/` and `src/`.

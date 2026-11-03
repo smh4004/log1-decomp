@@ -19,6 +19,7 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   tables    assets/tables/*.csv           enemy stats and the player's level table (tables.py)
   areas     assets/areas/areaNN.json      characters, enemies, pickups, objects and trigger zones (warps...) (areas.py)
   dialogue  assets/dialogue/setNN.txt     the 80 conversation sets: speaker, next line, text (dialogue.py)
+  story     assets/story/quests.json      the 75 quests: tasks and what happens when they are done (quests.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -31,6 +32,7 @@ import maps as M
 import tables as T
 import areas as AR
 import dialogue as DLG
+import quests as QST
 from const import ROM, RODATA
 
 
@@ -142,6 +144,7 @@ def extract(rom, out):
     T.extract(d, out, reg)
     AR.extract(d, out, reg)
     DLG.extract(d, out, reg, AR.sprites(d))
+    QST.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -211,6 +214,8 @@ def build(rom, src, out):
             AR.build(d, a, path, ctx)
         elif k == 'dialogue':
             DLG.build(d, a, path, ctx, AR.sprites(d))
+        elif k == 'quests':
+            QST.build(d, a, path, ctx)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))

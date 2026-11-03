@@ -10,13 +10,16 @@
   6. areas:  area 0 gets a wolf on the sand patch (an enemy where there were none) and a new warp zone right of the
              spot where the opening scene leaves Goku, leading to the forest by Goku's house (area 2)
   7. dialogue: in Krillin's first conversation (set 47) the first line is rewritten and a new line from Master Roshi
-             is added after "Hmm, that's no fun..." """
+             is added after "Hmm, that's no fun..."
+  8. story:  quest 1 is done as soon as its magazine is picked up (its "give it to Roshi" task is removed) and also gives
+             1234 EXP (a new give_exp action)
+`demo_edits.py dialogue` / `story` apply only 7 / 8 (the other edits change where Goku walks on the test routes)."""
 import os
 import numpy as np
 from PIL import Image
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import sys
-ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `demo_edits.py dialogue`: only edit 7
+ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue`: only edit 7; `story`: only edit 8
 if ONLY is None:
     p = 'assets/text/strings.txt'; s = open(p, encoding='utf-8').read()
     old = 'gUnknown_085C2E1A\tOur story begins with our humble hero, Goku.'
@@ -52,11 +55,18 @@ if ONLY is None:
     a['actors'].append({'x': 48, 'y': 256, 'sprite': 'wolf', 'show': 0, 'flag': 0, 'kind': 2, 'param': 0, 'b10': 0, 'b11': 0})
     a['triggers'].append({'kind': 'warp', 'rect': [300, 200, 360, 280], 'mode': 1, 'b13': 0, 'to_area': 2, 'to_x': 632, 'to_y': 384})
     open(p, 'w').write(json.dumps(a, indent=1))
-p = 'assets/dialogue/set47.txt'; s = open(p, encoding='utf-8').read()
-n = sum(1 for l in s.split('\n') if l[:1].isdigit())
-s = s.replace('0: krillin1 > 1 | Hey Gohan, are you going to be a great martial artist like your dad?',
-              '0: krillin1 > 1 | MOD TEST: Hey Gohan, this line was edited and grew longer!')
-s = s.replace("3: krillin1 > 4 | Hmm, that's no fun...", "3: krillin1 > %d | Hmm, that's no fun..." % n)
-s = s.rstrip('\n') + '\n%d: roshi > 4 | MOD TEST: a brand new line from Master Roshi.\n' % n
-open(p, 'w', encoding='utf-8').write(s)
+if ONLY in (None, 'dialogue'):
+    p = 'assets/dialogue/set47.txt'; s = open(p, encoding='utf-8').read()
+    n = sum(1 for l in s.split('\n') if l[:1].isdigit())
+    s = s.replace('0: krillin1 > 1 | Hey Gohan, are you going to be a great martial artist like your dad?',
+                  '0: krillin1 > 1 | MOD TEST: Hey Gohan, this line was edited and grew longer!')
+    s = s.replace("3: krillin1 > 4 | Hmm, that's no fun...", "3: krillin1 > %d | Hmm, that's no fun..." % n)
+    s = s.rstrip('\n') + '\n%d: roshi > 4 | MOD TEST: a brand new line from Master Roshi.\n' % n
+    open(p, 'w', encoding='utf-8').write(s)
+if ONLY in (None, 'story'):
+    import json
+    p = 'assets/story/quests.json'; q = json.load(open(p))
+    q['quests'][1]['tasks'] = q['quests'][1]['tasks'][:1]
+    q['quests'][1]['actions'].append({'type': 'give_exp', 'amount': 1234})
+    open(p, 'w').write(json.dumps(q, indent=1))
 print('demo edits applied; now run: make modern')

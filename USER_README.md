@@ -84,15 +84,28 @@ time that conversation starts at NEXT. So:
 * change who talks: the SPEAKER name.
 Which set a character uses is the `param` of the character in `assets/areas/areaNN.json`.
 
-## 10. Testing and sharing
+## 10. The story (`assets/story/quests.json`)
+The game's story is 75 quests. Each has `tasks` (all must happen) and `actions` (what happens then). For example
+quest 3, "Roshi's Magazines", waits for quests 0, 1 and 2 (bring Roshi his magazines) and then plays a conversation,
+gives EXP, plays a scene and moves conversations on. Task types: `talk_with_item`, `defeat` (an enemy by sprite set),
+`after_quest`, `after_conversation`, `spawn_item` (a pickup lying at x, y) and others. Action types: `give_exp`,
+`give_pickup`, `conversation`, `set_entry` (what a character says next time), `warp`, `music`, `set_walkable` and
+others. All types and fields are listed at the top of `tools/assets/quests.py`.
+* Change numbers (EXP, positions, which conversation, which area).
+* Remove a task or action (delete its line) or add one: copy a line of the same type, delete its `label`, change
+  the values. Keep task `id`s unique (0-127).
+* Characters in `areas/*.json` appear or vanish by quest: their `flag` is a position in `quest_of_flag`, whose number
+  is the quest.
+
+## 11. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
 * `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
-  a palette, a map, a table, an area and a conversation edit.
+  a palette, a map, a table, an area, a conversation and a quest edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 11. Limits
-* No editors yet for sprite sheets, the story scripts (which conversation or event comes next), music or the intro
-  movies (see `docs/progress.md`). New areas
+## 12. Limits
+* No editors yet for sprite sheets, music or the intro movies. Some quest task/action types keep part of their data
+  as hex (`raw`) (see `docs/progress.md`). New areas
   can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

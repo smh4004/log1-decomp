@@ -37,6 +37,9 @@ routine from 0x08008840 to 0x03003D70).
 | 0x080109F0 | 109 pointers to character sprite set names |
 | 0x085C219C | full-screen picture table: {palette, data, flags} triples |
 | 0x086AB734 / 0x086AB884 | area tile set descriptors {data, flags} / area palettes (256 colours each) |
+| 0x08542AF4.. / 0x085439E0 | quest records / quest table (75); tasks and actions 0x08543288.. (`tools/assets/quests.py`) |
+| 0x08543988 | actor flag -> quest number (88 bytes) |
+| 0x08166AC0-0x08166BF0 | vtables of the 27 quest task/action types |
 | 0x086B6094 | enemy table: 34 x 0x40 bytes (exp, AI values, power, hp, defense) |
 | 0x0855xxxx-0x0859xxxx | music: track tables, sequences, 8-bit PCM instruments (headers near 0x08591E70) |
 | 0x085C2E1A | opening story text |
@@ -49,6 +52,7 @@ routine from 0x08008840 to 0x03003D70).
 | 0x08009524 | `Decompress(src, flags)`: bit 4 Huffman (swi 0x13), bit 3 LZ77 (swi 0x11), bit 2 run-length (swi 0x14), bit 1 Diff16 (swi 0x18), bit 0 Diff8 (swi 0x16) |
 | 0x08006D90 | object constructor: player (from the level stats) or enemy (from the enemy table) |
 | 0x08007352 | apply a hit: defense reduction, HP |
+| 0x080054AE | story tick: quests whose tasks are all done run their actions; `sub_08005478` sends events to tasks |
 | 0x08001FA8 | area loader `(area, position)`: music, actors (0x080058D6), pickups (0x0800D1A0), objects (0x0800697E); warps (0x0800356C) call it |
 | 0x08009744 | game state switch (calls the old state's exit and the new state's enter method) |
 | 0x080099B6 | `WaitForVBlank` (harness `syncpc 0x080099F2`) |
