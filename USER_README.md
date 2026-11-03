@@ -1,7 +1,8 @@
 # User guide: making mods for Dragon Ball Z: The Legacy of Goku
 
-You can change all of the game's text, its compressed graphics and palettes, its maps, who and what is in each area
-(characters, enemies, warps), enemy stats and the player's levels, build a playable ROM, and share it as a patch, without knowing assembly or C.
+You can change all of the game's text and conversations, the story (quests), its graphics, palettes and character
+sprites, its maps, who and what is in each area (characters, enemies, warps), enemy stats, the player's levels and the
+sound samples, build a playable ROM, and share it as a patch, without knowing assembly or C.
 
 ## 1. Setup (once)
 ```sh
@@ -97,15 +98,26 @@ others. All types and fields are listed at the top of `tools/assets/quests.py`.
 * Characters in `areas/*.json` appear or vanish by quest: their `flag` is a position in `quest_of_flag`, whose number
   is the quest.
 
-## 11. Testing and sharing
+## 11. Character sprites (`assets/sprites/NAME.png`)
+One sheet per character: 4 columns (facing directions) and 19 rows (animation frames). Edit in an indexed-colour editor
+with the sheet's 16 colours (colour 0 = transparent), inside each frame's area (empty cells and the space around a
+small frame are ignored). A frame that the game mirrors for the other direction is shown mirrored; edit either copy.
+The colours themselves are in `assets/palettes/` (see `manifest.json` for which palette a sheet uses).
+
+## 12. Sounds (`assets/sound/`)
+`sampleNN.wav` are the 20 instrument and effect samples. Replace one with your own WAV (mono or stereo, 8 or 16 bit,
+any rate and length; keep it short, the GBA has little space). `samples.json` holds loop settings: `loop` 0 = play
+once, 1 or 3 = loop from `loop_start` (in samples). The music's notes can't be edited yet.
+
+## 13. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
 * `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
-  a palette, a map, a table, an area, a conversation and a quest edit.
+  a palette, a map, a table, an area, a conversation, a quest, a sprite and a sound edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 12. Limits
-* No editors yet for sprite sheets, music or the intro movies. Some quest task/action types keep part of their data
-  as hex (`raw`) (see `docs/progress.md`). New areas
+## 14. Limits
+* Music notes (the pattern format) and the intro movies can't be edited yet. A few quest fields (`bN`) aren't
+  understood yet (see `docs/progress.md`). New areas
   can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

@@ -26,10 +26,14 @@
 	.global gUnknown_08575E35
 	.global gUnknown_085764BB
 	.global gUnknown_08578A18
+	.global gUnknown_0857A2C2
 	.global gUnknown_0857B471
 	.global gUnknown_0857D0AC
 	.global gUnknown_0857E91C
 	.global gUnknown_0857F864
+	.global gUnknown_085808F6
+	.global gUnknown_08581472
+	.global gUnknown_08586A46
 	.global gUnknown_08587888
 	.global gUnknown_08588221
 	.global gUnknown_08589573
@@ -309,7 +313,9 @@ gUnknown_08575E35:
 gUnknown_085764BB:
 	.incbin "baserom.gba", 0x5764BB, 0x255D
 gUnknown_08578A18:
-	.incbin "baserom.gba", 0x578A18, 0x2A59
+	.incbin "baserom.gba", 0x578A18, 0x18AA
+gUnknown_0857A2C2:
+	.incbin "baserom.gba", 0x57A2C2, 0x11AF
 gUnknown_0857B471:
 	.incbin "baserom.gba", 0x57B471, 0x1C3B
 gUnknown_0857D0AC:
@@ -317,7 +323,13 @@ gUnknown_0857D0AC:
 gUnknown_0857E91C:
 	.incbin "baserom.gba", 0x57E91C, 0xF48
 gUnknown_0857F864:
-	.incbin "baserom.gba", 0x57F864, 0x8024
+	.incbin "baserom.gba", 0x57F864, 0x1092
+gUnknown_085808F6:
+	.incbin "baserom.gba", 0x5808F6, 0xB7C
+gUnknown_08581472:
+	.incbin "baserom.gba", 0x581472, 0x55D4
+gUnknown_08586A46:
+	.incbin "baserom.gba", 0x586A46, 0xE42
 gUnknown_08587888:
 	.incbin "baserom.gba", 0x587888, 0x999
 gUnknown_08588221:
@@ -334,7 +346,13 @@ gUnknown_08591E4C:
 	.4byte gUnknown_085638D9
 	.incbin "baserom.gba", 0x591E5C, 0x8
 	.4byte gUnknown_0857F864
-	.incbin "baserom.gba", 0x591E68, 0x2C
+	.incbin "baserom.gba", 0x591E68, 0x8
+	.4byte gUnknown_085808F6
+	.incbin "baserom.gba", 0x591E74, 0x8
+	.4byte gUnknown_08581472
+	.incbin "baserom.gba", 0x591E80, 0x8
+	.4byte gUnknown_08586A46
+	.incbin "baserom.gba", 0x591E8C, 0x8
 	.4byte gUnknown_08588221
 	.incbin "baserom.gba", 0x591E98, 0x8
 	.4byte gUnknown_08589573
@@ -354,7 +372,9 @@ gUnknown_08591E4C:
 	.4byte gUnknown_085764BB
 	.incbin "baserom.gba", 0x591EF8, 0x8
 	.4byte gUnknown_08578A18
-	.incbin "baserom.gba", 0x591F04, 0x14
+	.incbin "baserom.gba", 0x591F04, 0x8
+	.4byte gUnknown_0857A2C2
+	.incbin "baserom.gba", 0x591F10, 0x8
 	.4byte gUnknown_0857B471
 	.incbin "baserom.gba", 0x591F1C, 0x8
 	.4byte gUnknown_0857D0AC

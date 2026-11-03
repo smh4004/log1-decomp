@@ -13,7 +13,10 @@ Tasks (common fields: id = task bit at 0x03000028, area = where it is active; a 
   after_quest      quest `quest` is done
   after_conversation  conversation set `set` reaches entry `entry`
   spawn_item         pickup `item` lies at x, y in `area` until picked up
-  spawn_b40, spawn_b60, zone, b_ae0, b_be8: placed in an area when it loads; fields kept as hex
+  enter_zone         walking into the rectangle (a trigger zone record: callback sub_08006244) does it
+  spawn_character    character `sprite` stands at x, y in `area` with conversation `set`/`entry` (b8: ?)
+  follower           character `sprite` at x, y (used by the rescue quests; b7-b9 not decoded)
+  spot, spot_ae0     a rectangle in `area` (b6/b7 not decoded)
 Actions:
   conversation (set, entry)   play conversation `set` from `entry`
   set_entry (set, entry)      next time, conversation `set` starts at `entry`
@@ -28,9 +31,10 @@ Actions:
   change_actor (area, sprite, param)  give a character in `area` another conversation set
   set_walkable (x1, y1, x2, y2, area) mark a rectangle of `area` walkable
   end_game                    game state change (credits)
-  spawn_zone, b_be0           fields kept as hex
+  add_warp (area, item, rectangle, to_area, to_x, to_y)  an object `item` plus a warp zone in `area`
+  add_zone (area, rectangle)  a trigger zone with another callback (`callback` is a code address: don't change it)
 Actor `flag`s in areas/*.json are numbers into gActorFlagQuests (0x08543988): flag N shows/hides by quest
-quest_of_flag[N]. Edit fields in place; lists of tasks and actions can be reordered, shortened or extended (new
+quest_of_flag[N]. Fields named bN are not decoded (N = byte offset); `callback` fields are code addresses and must stay. Edit fields in place; lists of tasks and actions can be reordered, shortened or extended (new
 objects of any listed type; give `type` and its fields, `raw` may be left out).
 """
 import os, json, struct, re
@@ -54,23 +58,30 @@ TYPES = {
     0x08166B50: ('change_actor', 8, [('area', 'B'), ('sprite', 'B'), ('param', 'B')]),
     0x08166B58: ('set_walkable', 16, [('x1', 'h'), ('y1', 'h'), ('x2', 'h'), ('y2', 'h'), ('area', 'B')]),
     0x08166B90: ('give_exp', 8, [('amount', 'i')]),
-    0x08166BB8: ('spawn_zone', 28, [('area', 'B'), ('item', 'B')]),
-    0x08166BE0: ('b_be0', 24, [('area', 'B')]),
+    0x08166BB8: ('add_warp', 28, [('area', 'B'), ('item', 'B'), ('b6', 'H'), ('callback', 'I'), ('x1', 'h'), ('y1', 'h'),
+                                  ('x2', 'h'), ('y2', 'h'), ('mode', 'B'), ('b13', 'B'), ('to_area', 'H'), ('to_x', 'H'),
+                                  ('to_y', 'H')]),
+    0x08166BE0: ('add_zone', 24, [('area', 'B'), ('b5', 'B'), ('b6', 'H'), ('callback', 'I'), ('x1', 'h'), ('y1', 'h'),
+                                  ('x2', 'h'), ('y2', 'h'), ('mode', 'B'), ('b13', 'B')]),
     # tasks
-    0x08166AD0: ('spawn_item', 12, [('id', 'B'), ('area', 'B'), ('item', 'B'), ('b7', 'B'), ('x', 'H'), ('y', 'H')]),
-    0x08166AE0: ('b_ae0', 16, [('id', 'B'), ('area', 'B')]),
+    0x08166AD0: ('spawn_item', 12, [('id', 'B'), ('area', 'B'), ('item', 'B'), ('b7', 'B'), ('x', 'H'), ('y', 'H'), ('b14', 'H')]),
+    0x08166AE0: ('spot_ae0', 16, [('id', 'B'), ('area', 'B'), ('b6', 'H'), ('x1', 'h'), ('y1', 'h'), ('x2', 'h'), ('y2', 'h')]),
     0x08166B10: ('talk_with_item', 12, [('id', 'B'), ('area', 'B'), ('item', 'B'), ('sprite', 'B'), ('set', 'B'),
                                         ('entry', 'B')]),
-    0x08166B40: ('spawn_b40', 16, [('id', 'B'), ('area', 'B')]),
-    0x08166B60: ('spawn_b60', 16, [('id', 'B'), ('area', 'B')]),
+    0x08166B40: ('spot', 16, [('id', 'B'), ('area', 'B'), ('b6', 'B'), ('b7', 'B'), ('x1', 'h'), ('y1', 'h'), ('x2', 'h'),
+                              ('y2', 'h')]),
+    0x08166B60: ('spawn_character', 16, [('id', 'B'), ('area', 'B'), ('sprite', 'B'), ('set', 'B'), ('b8', 'B'),
+                                         ('entry', 'B'), ('x', 'H'), ('y', 'H')]),
     0x08166B70: ('talk_with_kind', 12, [('id', 'B'), ('area', 'B'), ('kind', 'B'), ('sprite', 'B'), ('set', 'B'),
                                         ('entry', 'B')]),
-    0x08166B80: ('zone', 24, [('id', 'B'), ('area', 'B')]),
+    0x08166B80: ('enter_zone', 24, [('id', 'B'), ('area', 'B'), ('b6', 'H'), ('callback', 'I'), ('x1', 'h'), ('y1', 'h'),
+                                    ('x2', 'h'), ('y2', 'h'), ('mode', 'B'), ('b13', 'B')]),
     0x08166B98: ('defeat', 8, [('id', 'B'), ('area', 'B'), ('sprite', 'B')]),
     0x08166BA8: ('activate', 8, [('id', 'B'), ('area', 'B'), ('sprite', 'B')]),
     0x08166BC0: ('after_quest', 8, [('id', 'B'), ('area', 'B'), ('quest', 'B')]),
     0x08166BD0: ('after_conversation', 8, [('id', 'B'), ('area', 'B'), ('set', 'B'), ('entry', 'B')]),
-    0x08166BE8: ('b_be8', 16, [('id', 'B'), ('area', 'B')]),
+    0x08166BE8: ('follower', 16, [('id', 'B'), ('area', 'B'), ('sprite', 'B'), ('b7', 'B'), ('b8', 'B'), ('b9', 'B'),
+                                  ('x', 'H'), ('y', 'H'), ('b14', 'H')]),
 }
 BYNAME = {v[0]: k for k, v in TYPES.items()}
 

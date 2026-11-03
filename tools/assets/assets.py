@@ -20,6 +20,8 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   areas     assets/areas/areaNN.json      characters, enemies, pickups, objects and trigger zones (warps...) (areas.py)
   dialogue  assets/dialogue/setNN.txt     the 80 conversation sets: speaker, next line, text (dialogue.py)
   story     assets/story/quests.json      the 75 quests: tasks and what happens when they are done (quests.py)
+  sprites   assets/sprites/NAME.png       character sprite sheets, 19 rows x 4 directions (sprites.py)
+  sound     assets/sound/sampleNN.wav     the 20 instrument / sound samples, any length and rate (sound.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -33,6 +35,8 @@ import tables as T
 import areas as AR
 import dialogue as DLG
 import quests as QST
+import sprites as SPR
+import sound as SND
 from const import ROM, RODATA
 
 
@@ -133,6 +137,7 @@ def extract(rom, out):
         if has: reg('blockpng:%s' % lab, pp, kind='blockpng', start=o, end=e, stages=stages, bin=os.path.relpath(pb, out),
                     layout=inf['layout'], palette=pal)
     for a in G.areas(d): pals[a['palette'] - ROM] = 256
+    for c in range(SPR.N_CHARS): pals.setdefault(SPR.record(d, c)[1], 16)
     pd = os.path.join(out, 'palettes'); os.makedirs(pd, exist_ok=True)
     for po, n in sorted(pals.items()):
         lab = L.name_at(po) or 'pal_%06X' % po
@@ -145,6 +150,8 @@ def extract(rom, out):
     AR.extract(d, out, reg)
     DLG.extract(d, out, reg, AR.sprites(d))
     QST.extract(d, out, reg)
+    SPR.extract(d, out, reg, AR.sprites(d))
+    SND.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -216,6 +223,10 @@ def build(rom, src, out):
             DLG.build(d, a, path, ctx, AR.sprites(d))
         elif k == 'quests':
             QST.build(d, a, path, ctx)
+        elif k == 'sprite':
+            SPR.build(d, a, path, ctx)
+        elif k in ('sample', 'samples'):
+            SND.build(d, a, path, ctx, src)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))

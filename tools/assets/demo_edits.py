@@ -13,13 +13,15 @@
              is added after "Hmm, that's no fun..."
   8. story:  quest 1 is done as soon as its magazine is picked up (its "give it to Roshi" task is removed) and also gives
              1234 EXP (a new give_exp action)
-`demo_edits.py dialogue` / `story` apply only 7 / 8 (the other edits change where Goku walks on the test routes)."""
+  9. sprites: Goku's sprite sheet gets two colours swapped (orange gi <-> blue undershirt indexes 6 and 13)
+  10. sound: sample 9 (used by the title music) is replaced by a longer 440 Hz tone (it moves to the end of the data)
+`demo_edits.py dialogue` / `story` / `sprites` / `sound` apply only 7 / 8 / 9 / 10 (the other edits change where Goku walks on the test routes)."""
 import os
 import numpy as np
 from PIL import Image
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import sys
-ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue`: only edit 7; `story`: only edit 8
+ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue` / `story` / `sprites` / `sound`: only edit 7 / 8 / 9 / 10
 if ONLY is None:
     p = 'assets/text/strings.txt'; s = open(p, encoding='utf-8').read()
     old = 'gUnknown_085C2E1A\tOur story begins with our humble hero, Goku.'
@@ -69,4 +71,15 @@ if ONLY in (None, 'story'):
     q['quests'][1]['tasks'] = q['quests'][1]['tasks'][:1]
     q['quests'][1]['actions'].append({'type': 'give_exp', 'amount': 1234})
     open(p, 'w').write(json.dumps(q, indent=1))
+if ONLY in (None, 'sprites'):
+    p = 'assets/sprites/goku.png'
+    im = Image.open(p); a = np.array(im); pal = im.getpalette()
+    a = np.where(a == 6, 13, np.where(a == 13, 6, a)).astype(np.uint8)
+    o = Image.fromarray(a, 'P'); o.putpalette(pal); o.save(p)
+if ONLY in (None, 'sound'):
+    import wave
+    rate = 16000; t = np.arange(rate * 2)
+    tone = (np.sin(2 * np.pi * 440 * t / rate) * 100 + 128).astype(np.uint8)
+    with wave.open('assets/sound/sample09.wav', 'wb') as w:
+        w.setnchannels(1); w.setsampwidth(1); w.setframerate(rate); w.writeframes(tone.tobytes())
 print('demo edits applied; now run: make modern')

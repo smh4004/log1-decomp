@@ -23,5 +23,7 @@ CALL_VIA = num(G.get('call_via', 0))              # __call_via_r0 (8 x 'bx rN')
 SYNCPC = num(G.get('syncpc', 0))                  # harness frame sync point (after the VBlank wait loop)
 BIOS_BLOCKS = G.get('bios_blocks', False)        # scan for GBA BIOS Huffman/LZ77 streams (tools/bfdis/lz.py)
 PALETTE_FILTER = G.get('palette_filter', False)  # reject pointer-looking words inside 16-colour palettes
+# known pointer tables: [start, count, stride, field offset] -> those words are pointers whatever they look like
+PTR_TABLES = [tuple(num(x) for x in t) for t in G.get('ptr_tables', [])]
 STRING_TABLES = G.get('string_tables', False)     # strided records may point at unaligned C strings
 ISOLATED_REFCOUNT = G.get('isolated_refcount', 3)  # isolated far pointers need this many references (0 = never)

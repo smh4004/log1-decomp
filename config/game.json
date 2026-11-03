@@ -44,5 +44,13 @@
  "isolated_refcount": 0,
  "call_via": "0x0800E4A0",
  "syncpc": "0x080099F2",
- "string_tables": true
+ "string_tables": true,
+ "ptr_tables": [
+  [
+   "0x591E4C",
+   38,
+   12,
+   0
+  ]
+ ]
 }

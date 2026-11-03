@@ -6,7 +6,8 @@
      re-packed logo tiles (screen differs from the original), the smoke route still reaches the first area and the menu,
      the area palette edit shows in game, the map edit (tiles + walkable mask) is in the ROM, the level-table edit
      gives the player 999 max HP in game, an added wolf is created with the edited enemy HP, and a new warp zone
-     takes the player to another area, an edited conversation shows its rewritten and added lines, and an edited quest completes and gives its new EXP reward
+     takes the player to another area, an edited conversation shows its rewritten and added lines, an edited quest completes and gives its new EXP reward, a
+     sprite sheet edit changes how Goku is drawn, and the title music plays a replaced (longer) sample
 Exits non-zero on any failure."""
 import os, sys, subprocess, shutil, hashlib
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -90,4 +91,18 @@ out = run('tools/harness/harness log1_modern.gba build_modern/exp.txt build_mode
 check('story edit: quest 1 completes and its new action gives 1234 EXP',
       re.search(r'mem 03000038: \w{6}(\w\w)', out) and int(re.search(r'mem 03000038: \w{6}(\w\w)', out).group(1), 16) & 2
       and 'mem 030007d8: 000004d2' in out)
+shutil.rmtree('assets', ignore_errors=True)
+run('make -s extract && python3 tools/assets/demo_edits.py sprites && make -s modern')
+sp = shots('log1_modern.gba', 'tools/harness/smoke.txt', 'build_modern/verify_spr')
+check('sprite edit: Goku is drawn with the swapped colours', sp['s15_walk_RIGHT'] != ref['s15_walk_RIGHT'])
+shutil.rmtree('assets', ignore_errors=True)
+run('make -s extract && python3 tools/assets/demo_edits.py sound && make -s modern')
+rom = open('log1_modern.gba', 'rb').read()
+p, loop, ls, ln, rate = struct.unpack_from('<IHHHH', rom, 0x591E4C + 12 * 9)
+open('build_modern/snd.txt', 'w').write('run 3200\ndump iw 03000000 8000\ndump ew 02000000 40000\n')
+os.makedirs('build_modern/verify_snd', exist_ok=True)
+run('tools/harness/harness log1_modern.gba build_modern/snd.txt build_modern/verify_snd')
+mem = open('build_modern/verify_snd/iw.bin', 'rb').read() + open('build_modern/verify_snd/ew.bin', 'rb').read()
+used = any(p <= struct.unpack_from('<I', mem, i)[0] < p + ln for i in range(0, len(mem) - 3, 4))
+check('sound edit: the title music plays the new, longer sample 9', ln == 32000 and rate == 16000 and used)
 print('ALL OK' if ok else 'SOME CHECKS FAILED'); sys.exit(0 if ok else 1)

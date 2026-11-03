@@ -21,7 +21,7 @@ import struct, collections, bisect, re
 ROM = 0x08000000
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from game import SOUND_LO, SOUND_HI, NOPTR, PALETTE_FILTER, ISOLATED_REFCOUNT, STRING_TABLES   # uncompressed sound region (samples + sequences); no-pointer ranges
+from game import SOUND_LO, SOUND_HI, NOPTR, PALETTE_FILTER, ISOLATED_REFCOUNT, STRING_TABLES, PTR_TABLES   # uncompressed sound region (samples + sequences); no-pointer ranges
 
 
 def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
@@ -101,9 +101,12 @@ def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
 
     acc, amb = {}, {}
     cand = {}
+    forced = {s + k * st + f for s, n, st, f in PTR_TABLES for k in range(n)}
     for o in range(ro_lo, ro_hi, 4):
         if inwfz[o]: continue
         w = struct.unpack_from('<I', d, o)[0]
+        if o in forced and ROM <= w < ROM + image_end:
+            acc[o] = (w, 'config'); continue
         if ROM <= w < ROM + image_end:
             if any(lo <= o < hi for lo, hi in NOPTR):
                 amb[o] = (w, 'noptr'); continue
@@ -200,7 +203,7 @@ def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
     starts = sorted(set((w2 & ~0) - ROM for (w2, k2) in acc.values() if k2 not in ('func',)) | set(w2 - ROM for w2 in pool_targets))
     for o in list(acc):
         w, k = acc[o]
-        if k in ('wfz', 'func', 'code'): continue
+        if k in ('wfz', 'func', 'code', 'config'): continue
         i = bisect.bisect_right(starts, o) - 1
         if i < 0 or starts[i] % 2 == 0 or o - starts[i] >= 0x1000: continue   # only odd-start objects
         if not (SOUND_LO <= starts[i] < SOUND_HI): continue       # observed only for sound sequences

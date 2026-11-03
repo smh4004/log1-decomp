@@ -40,6 +40,8 @@ routine from 0x08008840 to 0x03003D70).
 | 0x08542AF4.. / 0x085439E0 | quest records / quest table (75); tasks and actions 0x08543288.. (`tools/assets/quests.py`) |
 | 0x08543988 | actor flag -> quest number (88 bytes) |
 | 0x08166AC0-0x08166BF0 | vtables of the 27 quest task/action types |
+| 0x085C0C80 | character table: 84 records (palette, 76 frame records) (`tools/assets/sprites.py`); sprite set -> record: byte table 0x0815A709 |
+| 0x08591E4C / 0x08591F3C | sound sample table (20) / music track table (18) (`tools/assets/sound.py`) |
 | 0x086B6094 | enemy table: 34 x 0x40 bytes (exp, AI values, power, hp, defense) |
 | 0x0855xxxx-0x0859xxxx | music: track tables, sequences, 8-bit PCM instruments (headers near 0x08591E70) |
 | 0x085C2E1A | opening story text |

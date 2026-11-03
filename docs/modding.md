@@ -13,6 +13,8 @@ make verify-mods      # self-test
 |---|---|---|
 | Conversations (80 sets, 988 lines: speaker, next line, text) | `assets/dialogue/setNN.txt` | `tools/assets/dialogue.py` |
 | The story: 75 quests, their tasks and their results | `assets/story/quests.json` | `tools/assets/quests.py` |
+| Character sprite sheets (84 characters, 19 rows x 4 directions) | `assets/sprites/NAME.png` | `tools/assets/sprites.py` |
+| Instrument and sound samples (20) | `assets/sound/sampleNN.wav`, `samples.json` | `tools/assets/sound.py` |
 | All other text the game points to: story, menus, names | `assets/text/strings.txt` | `tools/assets/assets.py` |
 | Graphics and other packed data (182 BIOS-compressed blocks), drawn in their real colours | `assets/gfx/blocks/LABEL.bin` + `LABEL.png` | `tools/assets/assets.py`, `bios.py`, `gfxinfo.py` |
 | Palettes (every one those images and the areas use) | `assets/palettes/LABEL.pal` | `assets.py` |
@@ -51,6 +53,25 @@ out. Area actors hide or appear by quest: their `flag` is an index into `quest_o
 extended, and new objects of any type are created (list moved if it grows, count patched). `make verify-mods` turns
 quest 1 into "pick up the magazine" with an extra `give_exp` of 1234 and checks in the emulator that it completes and
 the EXP arrives.
+
+## Sprite sheets
+`gCharacterTable` (0x085C0C80, 84 records, chosen per sprite set through the byte table 0x0815A709) holds each
+character's palette and a table of 76 frame records (19 rows x 4 facing directions). A frame record gives size, OAM
+shape, a mirror flag and a pointer to uncompressed 4 bpp tiles (0x086B6AC0-0x087A6..). The sheet shows every frame in
+its cell (mirrored ones mirrored); edits are written back into the frames (unmirrored), in place, so frame sizes are
+fixed. Frames shared between cells or characters are written once; conflicting edits stop the build. The 19 rows are
+animation frames in the game's order (standing, walking, ... per character); not every character uses every row.
+
+## Sound samples
+`gSampleTable` (0x08591E4C) has 20 records {-> 8-bit signed PCM, loop flag, loop start, length, rate in Hz}. They are
+exported as WAV and imported from any 8/16-bit mono or stereo WAV; the rate comes from the file, a longer sample is
+moved to the appendix and its pointer follows. `make verify-mods` replaces a sample the title music uses with a longer
+tone and checks that the music player points into the new data. The 18 music tracks that follow (`gTrackTable`
+0x08591F3C: pattern list, order list, tempo) use a custom pattern format that is not decoded yet.
+
+These two tables showed a gap in relocation: four sample pointers were plain numbers. `config/game.json` can now list
+known pointer tables (`ptr_tables`: start, count, stride, field); the sample/track table is listed there (9,436
+pointers, shift test still 37/37).
 
 ## Compressed blocks
 The game unpacks graphics with `Decompress(src, flags)` (0x08009524), which chains the BIOS decoders: Huffman (swi 0x13),
@@ -119,6 +140,6 @@ turns changed files into overrides, `tools/assets/apply.py` splices them into a 
 build links `log1_modern.gba`. This works because every pointer in the data is a symbol (`docs/shifting.md`).
 
 ## Not covered yet
-The area `+0x18` byte table, what the 17 enemy AI values do,  (speaker/next fields), sprite sheets, music and the
+The area `+0x18` byte table, what the 17 enemy AI values do, the music pattern format,  (speaker/next fields), sprite sheets, music and the
 movie codec. The data is all reachable
 from the disassembly (`data/*.s`), and the code that reads it is in `ref/` and `src/`.
