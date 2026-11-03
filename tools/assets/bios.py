@@ -107,11 +107,39 @@ def huffman4(data):
     return hdr(0x24, len(data)) + bytes(table) + words
 
 
+def diff_decode(d, o, width):
+    """BIOS Diff8bitUnFilter (header 0x81) / Diff16bitUnFilter (0x82) -> (data, end)"""
+    n = int.from_bytes(d[o + 1:o + 4], 'little'); src = d[o + 4:o + 4 + n]
+    if len(src) < n: return None
+    if width == 1:
+        out = bytearray(n); acc = 0
+        for i, b in enumerate(src): acc = (acc + b) & 0xFF; out[i] = acc
+    else:
+        out = bytearray(n); acc = 0
+        for i in range(0, n - 1, 2):
+            acc = (acc + (src[i] | src[i + 1] << 8)) & 0xFFFF; out[i] = acc & 0xFF; out[i + 1] = acc >> 8
+    return bytes(out), o + 4 + n
+
+
+def diff8(data):
+    out = bytearray(hdr(0x81, len(data))); prev = 0
+    for b in data: out.append((b - prev) & 0xFF); prev = b
+    return pad4(bytes(out))
+
+
+def diff16(data):
+    out = bytearray(hdr(0x82, len(data))); prev = 0
+    for i in range(0, len(data) - 1, 2):
+        v = data[i] | data[i + 1] << 8; dv = (v - prev) & 0xFFFF; prev = v
+        out += bytes([dv & 0xFF, dv >> 8])
+    return pad4(bytes(out))
+
+
 def pack(raw, stages):
     """stages: list in decode order, e.g. ['huff', 'lz'] -> Huffman of (LZ77 of raw)."""
     data = raw
     for st in reversed(stages):
-        data = {'huff': huffman4, 'lz': lz77, 'rl': rle}[st](data)
+        data = {'huff': huffman4, 'lz': lz77, 'rl': rle, 'diff8': diff8, 'diff16': diff16}[st](data)
     return data
 
 
@@ -120,9 +148,10 @@ def unpack(d, o):
     stages = []; data = d; pos = o; end = None
     while True:
         t = data[pos]
-        r = dec.huffman(data, pos) if t in (0x24, 0x28) else dec.lz77(data, pos) if t == 0x10 else dec.rle(data, pos) if t == 0x30 else None
+        r = dec.huffman(data, pos) if t in (0x24, 0x28) else dec.lz77(data, pos) if t == 0x10 else \
+            dec.rle(data, pos) if t == 0x30 else (diff_decode(data, pos, t - 0x80) if stages else None) if t in (0x81, 0x82) else None
         if r is None: break
-        stages.append({0x24: 'huff', 0x28: 'huff', 0x10: 'lz', 0x30: 'rl'}[t])
+        stages.append({0x24: 'huff', 0x28: 'huff', 0x10: 'lz', 0x30: 'rl', 0x81: 'diff8', 0x82: 'diff16'}[t])
         if end is None: end = r[1]
         data, pos = r[0], 0
         if len(data) < 4: break
@@ -134,7 +163,8 @@ if __name__ == '__main__':
     r = random.Random(1)
     for trial in range(30):
         raw = bytes(r.choice([0, 0, 1, 2, 3, 0x11, 0xFF, r.randrange(256)]) for _ in range(r.randrange(16, 3000)))
-        for st in (['huff', 'lz'], ['huff', 'lz', 'rl'], ['lz'], ['huff'], ['huff', 'rl'], ['lz', 'rl']):
+        for st in (['huff', 'lz'], ['huff', 'lz', 'rl'], ['lz'], ['huff'], ['huff', 'rl'], ['lz', 'rl'], ['huff', 'diff8'], ['huff', 'diff16']):
+            if 'diff16' in st: raw = raw[:len(raw) & ~1]
             p = pack(raw, st)
             got, s2, e = unpack(p, 0)
             assert got == raw and s2 == st, (st, len(raw))

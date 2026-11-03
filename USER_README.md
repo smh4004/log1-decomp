@@ -1,7 +1,7 @@
 # User guide: making mods for Dragon Ball Z: The Legacy of Goku
 
-You can change all of the game's text and its compressed graphics, build a playable ROM, and share it as a patch,
-without knowing assembly or C.
+You can change all of the game's text, its compressed graphics and palettes, its maps, enemy stats and the player's
+levels, build a playable ROM, and share it as a patch, without knowing assembly or C.
 
 ## 1. Setup (once)
 ```sh
@@ -32,19 +32,43 @@ Every string the game points to, one per line: `LABEL<TAB>text`. Find a line wit
 
 ## 4. Graphics (`assets/gfx/blocks/`)
 Each compressed block is two files:
-* `LABEL.png`: the data drawn as 4-bit tiles (16 per row). The 16 grey levels are palette indexes 0-15 (black = 0,
-  white = 15). Edit with any editor that keeps the image size; draw with those 16 greys (indexed PNG recommended).
-* `LABEL.bin`: the raw unpacked bytes (for data that isn't tiles: maps, tables). Edit either file, not both.
-The build re-packs a changed block the way the game expects (Huffman / LZ77 / run-length). Example: the title logo is
-`gUnknown_084DEDE4`. To find which block a screen uses, change one block (e.g. fill it with 15) and look.
+* `LABEL.png`: the picture as the game draws it, in its own colours: dialogue faces (32x32), full screens (title,
+  logos, story pictures; 240x160) and area tile sets (8x8 tiles, 16 per row). It is an indexed PNG: edit it with an
+  editor that keeps indexed colour (Aseprite, GIMP in Indexed mode, GraphicsGale) and draw only with colours from its
+  palette. Keep the image size. (If it gets saved as RGB, each pixel becomes the nearest palette colour.)
+* `LABEL.bin`: the raw unpacked bytes. Edit either file, not both.
+The build re-packs a changed block the way the game expects. Examples: the title screen is `gUnknown_084DEDE4`; faces
+are the 32x32 PNGs; Kame House's map tiles are `gUnknown_085C3888` (and `assets/maps/tiles/area00.png` shows all of
+that area's tiles as the map uses them).
 
-## 5. Testing and sharing
+## 5. Palettes (`assets/palettes/`)
+`LABEL.pal` files are plain text (JASC-PAL): after three header lines, one `R G B` line per colour (0-255). Most pixel
+editors can load and save them. Keep the number of lines. A palette is shared by everything that uses it (for an area,
+its whole map). The area palettes are the ones named in each map's record; to find the one a picture uses, compare its
+PNG colours, or look up the image's palette label in `assets/manifest.json`.
+
+## 6. Maps (`assets/maps/areaNN.tmx`)
+Open a `.tmx` in [Tiled](https://www.mapeditor.org) (free). Each of the 42 areas has:
+* `bg3 (bottom)`, `bg2`, `bg1 (top)`: the three tile layers (paint with tiles from the area's tile set; flips work).
+* `walkable`: red = the player can walk there. `mask1` and `mask2` are other masks (hidden; leave them unless you are
+  experimenting).
+Look at `assets/maps/preview/areaNN.png` to find an area. Keep the map size. An area is made of 30x20-tile screens;
+painting into an empty screen fills the rest of that screen with tile 0 (blank). To change how tiles look, edit the
+tile set's PNG in `assets/gfx/blocks/`.
+
+## 7. Enemies and levels (`assets/tables/`)
+* `enemies.csv`: one row per enemy type: `exp` (EXP you get), `hp`, `defense` (taken off each hit: in full, by half or
+  by a quarter, at random), `power`, and 17 AI/movement values (`s10`...) that aren't understood yet.
+* `levels.csv`: the player's 25 levels: `exp` needed, `max_hp`, `power`, `ki`.
+Edit numbers only; keep the rows. Spreadsheet programs open these files; save as CSV.
+
+## 8. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
-* `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows one text and
-  one graphics edit.
+* `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
+  a palette, a map and a table edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 6. Limits
-* No editors yet for maps, palettes, music or the intro movies (see `docs/progress.md`).
-* Graphics keep their unpacked size.
+## 9. Limits
+* No editors yet for area exits, enemy placement, sprite sheets, music or the intro movies (see `docs/progress.md`).
+* Graphics, palettes, maps and tables keep their size.

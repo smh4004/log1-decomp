@@ -8,9 +8,15 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   text      assets/text/strings.txt       every string the game points to (dialogue, menus, names): "LABEL<TAB>text".
                                           Any length: a longer string moves to the end of the data and every pointer
                                           to it follows (pointers are symbols in data/*.s).
-  blocks    assets/gfx/blocks/LABEL.bin   every BIOS-compressed block (Huffman / LZ77 / run-length, decoded the way
-            assets/gfx/blocks/LABEL.png   the game does): raw bytes, plus a 4bpp tile-sheet view (16 grey levels =
-                                          palette indexes). Edit either; the build re-packs with the same stages.
+  blocks    assets/gfx/blocks/LABEL.bin   every BIOS-compressed block (Huffman / LZ77 / run-length / diff filter, decoded
+            assets/gfx/blocks/LABEL.png   the way the game does): raw bytes, plus an indexed PNG drawn the way the game
+                                          draws it, in its own palette (tools/assets/gfxinfo.py: faces, full screens,
+                                          area tile sets; others as grey 4bpp tiles). Edit either; the build re-packs
+                                          with the same stages.
+  palettes  assets/palettes/LABEL.pal     every palette those images and the areas use (JASC-PAL text: one "R G B" line
+                                          per colour, 0-255). Same number of colours; written back in place.
+  maps      assets/maps/areaNN.tmx        the 42 areas as Tiled maps: 3 tile layers + walkable/mask layers (maps.py)
+  tables    assets/tables/*.csv           enemy stats and the player's level table (tables.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -18,6 +24,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, '..', 'bfdis'))
 import labels as L
 import bios
+import gfxinfo as G
+import maps as M
+import tables as T
 from const import ROM, RODATA
 
 
@@ -97,15 +106,35 @@ def extract(rom, out):
     reg('text', p, kind='text', items=[(o, len(t), e) for o, t, e in st])
 
     bd = os.path.join(out, 'gfx', 'blocks'); os.makedirs(bd, exist_ok=True)
-    for o, size, end, typ in blocks():
+    blks = blocks(); decoded = {}
+    for o, size, end, typ in blks:
+        decoded[o] = bios.unpack(d, o)[0]
+    info = G.classify(d, blks, decoded)
+    pals = {}
+    for o, size, end, typ in blks:
         raw, stages, e = bios.unpack(d, o)
         if raw is None: continue
         lab = L.name_at(o) or 'blk_%06X' % o
         pb = os.path.join(bd, lab + '.bin'); open(pb, 'wb').write(raw)
         pp = os.path.join(bd, lab + '.png')
-        has = to_png(raw, pp)
+        inf = info.get(o, dict(layout='tiles4', palette=None, colours=0))
+        pal = G.palette_rgb(d, inf['palette'], inf['colours']) if inf['palette'] is not None and inf['colours'] else G.grey()
+        if inf['palette'] is not None and inf['colours']:
+            pals[inf['palette']] = max(pals.get(inf['palette'], 0), inf['colours'])
+        has = G.save_png(raw, inf['layout'], pal, pp)
         reg('block:%s' % lab, pb, kind='block', start=o, end=e, stages=stages)
-        if has: reg('blockpng:%s' % lab, pp, kind='blockpng', start=o, end=e, stages=stages, bin=os.path.relpath(pb, out))
+        if has: reg('blockpng:%s' % lab, pp, kind='blockpng', start=o, end=e, stages=stages, bin=os.path.relpath(pb, out),
+                    layout=inf['layout'], palette=pal)
+    for a in G.areas(d): pals[a['palette'] - ROM] = 256
+    pd = os.path.join(out, 'palettes'); os.makedirs(pd, exist_ok=True)
+    for po, n in sorted(pals.items()):
+        lab = L.name_at(po) or 'pal_%06X' % po
+        rgb = G.palette_rgb(d, po, n)
+        p = os.path.join(pd, lab + '.pal')
+        open(p, 'w').write('JASC-PAL\n0100\n%d\n' % n + ''.join('%d %d %d\n' % tuple(rgb[i * 3:i * 3 + 3]) for i in range(n)))
+        reg('palette:%s' % lab, p, kind='palette', start=po, colours=n)
+    M.extract(d, out, reg, decoded, {b[0] for b in blks})
+    T.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -121,6 +150,16 @@ def build(rom, src, out):
         ov.append({'start': start, 'end': end, 'file': fn})
 
     done_blocks = set()
+    news = []
+
+    def put_s(start, end, text, size, tag):
+        fn = os.path.join(out, 'ov_%06X_%s.s' % (start, tag)); open(fn, 'w').write(text)
+        ov.append({'start': start, 'end': end, 'file': fn, 'size': size})
+
+    def new(label, data):
+        fn = os.path.join(out, 'new_%s.bin' % label); open(fn, 'wb').write(data)
+        ov.append({'new': label, 'file': fn, 'size': len(data)}); return label
+    ctx = dict(put=put, put_s=put_s, new=new)
     for name, a in man['assets'].items():
         path = os.path.join(src, a['file'])
         if sha(path) == a['sha1']: continue
@@ -139,11 +178,25 @@ def build(rom, src, out):
         elif k in ('block', 'blockpng'):
             if a['start'] in done_blocks: continue
             raw0, stages, e = bios.unpack(d, a['start'])
-            if k == 'blockpng': raw = from_png(path, open(os.path.join(src, a['bin']), 'rb').read())
+            if k == 'blockpng':
+                if 'layout' in a: raw = G.from_index(G.load_png(path, a['palette']), raw0, a['layout'])
+                else: raw = from_png(path, open(os.path.join(src, a['bin']), 'rb').read())
             else: raw = open(path, 'rb').read()
             if raw == raw0: continue
             done_blocks.add(a['start'])
             put(a['start'], a['end'], bios.pack(raw, a['stages']), 'blk')
+        elif k == 'palette':
+            lines = [l.split() for l in open(path) if l.strip()][3:3 + a['colours']]
+            o = a['start']; data = bytearray()
+            for i, (r, g, b) in enumerate(lines):
+                old = struct.unpack_from('<H', d, o + 2 * i)[0]
+                c = round(int(r) * 31 / 255) | round(int(g) * 31 / 255) << 5 | round(int(b) * 31 / 255) << 10 | (old & 0x8000)
+                data += struct.pack('<H', c)
+            if bytes(data) != d[o:o + len(data)]: put(o, o + len(data), bytes(data), 'pal')
+        elif k == 'map':
+            M.build(d, a, path, ctx)
+        elif k == 'table':
+            T.build(d, a, path, put)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))
