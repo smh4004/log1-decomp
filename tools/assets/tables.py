@@ -3,8 +3,17 @@
 assets/tables/enemies.csv   gEnemyTable (0x086B6094, 34 x 0x40 bytes), read by the enemy constructor sub_08006D90:
     +0x00 index      +0x04 name (sprite set name; shown here, not editable)    +0x08 kind (copied to object +0x02)
     +0x0C exp        EXP awarded (copied where the player keeps its EXP)
-    +0x10..+0x30     17 signed 16-bit values copied to the object (AI and movement settings; s10 = +0x10 ...).
-                     s18 > 1 makes the enemy lead a group.
+    +0x10..+0x30     17 signed 16-bit AI values (enemy AI: sub_0800755A; movement: sub_08006F1A):
+      idle        what it does with no target: 0/1 stand, 2 walk to goto_x/goto_y, 3 patrol its path, 4 wander,
+                  5 wander but return to home_x/home_y when further than home_range
+      react       with a target: 1 attack it, 2 attack whoever attacks its group, 3 attack (lone target), 4 flee
+      courage     1 attack while the target has more than 1/9 of its HP left, else back off; 2 attack while the target
+                  has less HP than itself; 3 attack, but back off now and then once below half HP; other = always
+      group       > 1: leads a group of that many
+      sight       distance at which it notices the player
+      speed       0-7: index into the speed table (8, 10, 12, 14, 16, 18, 19, 20)
+      start_x/y, dest_x/dest_y  initial position / path target (overwritten when the enemy is placed; 0 in the game)
+      unused16, unused1A  copied to the enemy but never read (unused1A is 1 for the pterodactyls only)
     +0x34 power      copied to object +0x54/+0x58 (the player keeps its "power" from the level table there)
     +0x38 hp         hit points (object +0x4C current / +0x50 max; at least 1)
     +0x3C defense    object +0x60: each hit is reduced by defense, defense/2 or defense/4 at random (sub_08007352)
@@ -17,7 +26,8 @@ import os, csv, struct
 ROM = 0x08000000
 ENEMIES, N_ENEMIES, ENEMY_SIZE = 0x6B6094, 34, 0x40
 LEVELS, N_LEVELS = 0x114A8, 25
-SHORTS = ['s%02X' % o for o in range(0x10, 0x32, 2)]
+SHORTS = ['idle', 'react', 'courage', 'unused16', 'group', 'unused1A', 'sight', 'home_x', 'home_y', 'home_range',
+          'goto_x', 'goto_y', 'speed', 'start_x', 'start_y', 'dest_x', 'dest_y']
 ENEMY_COLS = ['index', 'name', 'kind', 'exp'] + SHORTS + ['power', 'hp', 'defense']
 LEVEL_COLS = ['level', 'exp', 'max_hp', 'power', 'ki']
 

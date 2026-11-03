@@ -58,8 +58,8 @@ if ONLY is None:
             w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
     import json
     p = 'assets/areas/area00.json'; a = json.load(open(p))
-    a['actors'].append({'x': 48, 'y': 256, 'sprite': 'wolf', 'show': 0, 'flag': 0, 'kind': 2, 'param': 0, 'b10': 0, 'b11': 0})
-    a['triggers'].append({'kind': 'warp', 'rect': [300, 200, 360, 280], 'mode': 1, 'b13': 0, 'to_area': 2, 'to_x': 632, 'to_y': 384})
+    a['actors'].append({'x': 48, 'y': 256, 'sprite': 'wolf', 'show': 0, 'flag': 0, 'kind': 2, 'param': 0, 'entry': 0, 'b11': 0})
+    a['triggers'].append({'kind': 'warp', 'rect': [300, 200, 360, 280], 'mode': 1, 'arg': 0, 'to_area': 2, 'to_x': 632, 'to_y': 384})
     open(p, 'w').write(json.dumps(a, indent=1))
 if ONLY in (None, 'dialogue'):
     p = 'assets/dialogue/set47.txt'; s = open(p, encoding='utf-8').read()

@@ -51,15 +51,21 @@ PNG colours, or look up the image's palette label in `assets/manifest.json`.
 ## 6. Maps (`assets/maps/areaNN.tmx`)
 Open a `.tmx` in [Tiled](https://www.mapeditor.org) (free). Each of the 42 areas has:
 * `bg3 (bottom)`, `bg2`, `bg1 (top)`: the three tile layers (paint with tiles from the area's tile set; flips work).
-* `walkable`: red = the player can walk there. `mask1` and `mask2` are other masks (hidden; leave them unless you are
-  experimenting).
+* `walkable`: red = the player can walk (and land) there. `flyable` = where the player can take off and fly (R button);
+  `shots` = where ki blasts can travel. Both are hidden at first; show them in Tiled's layer list.
+* Big areas swap part of their tile set from screen to screen: `screen_tiles` in `assets/areas/areaNN.json` says which
+  extra tile block each screen uses (`assets/maps/tiles/areaNN_blockK.png` shows block K); paint a screen with tiles
+  from the block it uses.
 Look at `assets/maps/preview/areaNN.png` to find an area. Keep the map size. An area is made of 30x20-tile screens;
 painting into an empty screen fills the rest of that screen with tile 0 (blank). To change how tiles look, edit the
 tile set's PNG in `assets/gfx/blocks/`.
 
 ## 7. Enemies and levels (`assets/tables/`)
 * `enemies.csv`: one row per enemy type: `exp` (EXP you get), `hp`, `defense` (taken off each hit: in full, by half or
-  by a quarter, at random), `power`, and 17 AI/movement values (`s10`...) that aren't understood yet.
+  by a quarter, at random), `power`, and how it behaves: `idle` (0/1 stand, 2 walk to `goto_x`/`goto_y`, 3 patrol,
+  4 wander, 5 stay within `home_range` of `home_x`/`home_y`), `react` (1 attack, 2 defend its group, 4 flee),
+  `courage` (when it backs off), `group` (leads a pack of that size), `sight` (how far it sees you), `speed` (0-7).
+  The full list is at the top of `tools/assets/tables.py`.
 * `levels.csv`: the player's 25 levels: `exp` needed, `max_hp`, `power`, `ki`.
 Edit numbers only; keep the rows. Spreadsheet programs open these files; save as CSV.
 
@@ -67,13 +73,16 @@ Edit numbers only; keep the rows. Spreadsheet programs open these files; save as
 One JSON text file per area (open with any text editor; keep the commas and brackets valid). Positions are in pixels
 (a tile is 8 pixels; the map's tile grid in Tiled shows x/y in tiles, so multiply by 8).
 * `actors`: characters and enemies. `sprite` is a name from `assets/areas/SPRITES.txt`. `kind` 2 = enemy (it uses the
-  `enemies.csv` row with the same name, e.g. `wolf`); 0 or 1 = a character, `param` = what they say. `show` 0 = always,
+  `enemies.csv` row with the same name, e.g. `wolf`); 0 or 1 = a character, `param` = their conversation set (kind 0
+  starts it at `entry`). `show` 0 = always,
   1 = only until story flag `flag` is set, 2 = only after. Copy a line to add one, delete a line to remove one.
-* `triggers`: zones (`rect` = x1, y1, x2, y2). `warp` takes the player to `to_area` at `to_x`, `to_y`; `hp_zone`
+* `triggers`: zones (`rect` = x1, y1, x2, y2; `mode` 1 = works on foot, 2 = while flying, 3 = both). `warp` takes the player to `to_area` at `to_x`, `to_y`; `hp_zone`
   changes HP by `hp` every second inside it; `event` starts a conversation; `message` shows a text. Edit the numbers,
   or add a new `warp`/`hp_zone`/`event` line without a `label`. Example (a warp to the forest by Goku's house):
-  `{"kind": "warp", "rect": [300, 200, 360, 280], "mode": 1, "b13": 0, "to_area": 2, "to_x": 632, "to_y": 384}`
-* `pickups`, `objects`: items to find and scenery objects. `music` = the area's music track.
+  `{"kind": "warp", "rect": [300, 200, 360, 280], "mode": 1, "arg": 0, "to_area": 2, "to_x": 632, "to_y": 384}`
+* `pickups`, `objects`: items to find and scenery objects. `music` = the area's music track (`assets/music/songNN.txt`).
+* `tile_anim`: animated map tiles (water and the like): `count` tile slots from `first_tile` cycle in groups of
+  `frames_mask + 1`, at `speed`.
 Area numbers match the map files (`area02.json` = `area02.tmx`); `start` is a safe position in each area to warp to.
 
 ## 9. Conversations (`assets/dialogue/setNN.txt`)
@@ -133,6 +142,6 @@ numbered without gaps), or replace `movieN.fli` with any 120x80 8-bit FLI/FLC fi
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
 ## 15. Limits
-* A few quest fields (`bN`), the 17 enemy AI values and one per-area byte table aren't understood yet (see `docs/progress.md`). New areas
+* Everything the game reads is named; fields called `bN` / `unusedN` are padding or values the game never reads (see `docs/progress.md`). New areas
   can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

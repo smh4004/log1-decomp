@@ -2,7 +2,7 @@
 
 gSampleTable (0x08591E4C): 20 records {u32 -> 8-bit signed PCM, u16 loop (0 = none, 1/3 = loops), u16 loop start,
 u16 length, u16 sample rate (Hz)}; the music track table follows (gTrackTable 0x08591F3C, 18 x {-> pattern list,
--> order list, u8 tempo, u8}; its pattern format is not decoded yet).
+-> order list, u8 tempo, u8 speed}; see music.py).
 
 assets/sound/sampleNN.wav   mono 8-bit WAV at the sample's own rate
 assets/sound/samples.json   loop, loop_start (in samples) and rate for each

@@ -2,9 +2,11 @@
 
 Area record (gAreaTable, 42 x 0x34 bytes at 0x081C7C48):
   +0x00 u16 screens wide, u16 screens high, u16 width, u16 height (in 8x8 tiles; one screen = 30x20 tiles)
-  +0x08 3 x ptr  1-bit masks, 1 bit per tile, row by row: walkable, mask1 (always set so far), mask2 (unknown)
-  +0x14 ptr      area info (exits, objects; not decoded yet)
-  +0x18 ptr      byte table (not decoded yet)
+  +0x08 3 x ptr  1-bit masks, 1 bit per tile, row by row: walkable (on foot; also where you can land), flyable
+                 (where the player can take off and fly: R button, sub_08002300 area), shots (where ki blasts can
+                 travel, sub_0800B5A2)
+  +0x14 ptr      area info: music, characters, enemies, pickups, objects, trigger zones (areas.py)
+  +0x18 ptr      one byte per screen: which extra tile block (1-based) that screen needs; 0 = any (areas.py)
   +0x1C ptr      list of extra tile blocks {data, flags}, loaded from tile slot 346 on (550 tiles each)
   +0x20 3 x ptr  per-screen tables for BG1 (top), BG2, BG3 (bottom): one pointer per screen (0 = empty) to
                  30x20 u16 entries (bits 0-9 tile slot, 10 h-flip, 11 v-flip; 8 bpp so no palette bits)
@@ -13,7 +15,9 @@ Area record (gAreaTable, 42 x 0x34 bytes at 0x081C7C48):
 Screens live in one array (0x08019BC0-0x08142380, 1,012 screens); 14 are used more than once.
 
 Files: assets/maps/areaNN.tmx (edit in Tiled: https://www.mapeditor.org), assets/maps/tiles/areaNN.png (the area's
-1,024 tile slots, for display; edit tile graphics in assets/gfx/blocks/), assets/maps/preview/areaNN.png.
+1,024 tile slots, for display; edit tile graphics in assets/gfx/blocks/; areas with several extra tile blocks also get
+areaNN_blockK.png, for the screens that load block K: see screen_tiles in areas/areaNN.json),
+assets/maps/preview/areaNN.png (each screen drawn with its own tile block).
 Build: an edited screen used once is rewritten in place; a shared one, or a previously empty one, becomes a new object
 and only this area/layer/position's pointer changes. Masks are rewritten in place. The map size can't change.
 """
@@ -24,7 +28,7 @@ import gfxinfo as G
 ROM = 0x08000000
 FLIPH, FLIPV = 0x80000000, 0x40000000
 LAYERS = ['bg1 (top)', 'bg2', 'bg3 (bottom)']
-MASKS = ['walkable', 'mask1', 'mask2']
+MASKS = ['walkable', 'flyable', 'shots']
 FLAG_GID = 1025
 
 
@@ -41,13 +45,26 @@ def screen_refs(d):
     return refs
 
 
-def vram_tiles(d, a, decoded, starts):
+def vram_tiles(d, a, decoded, starts, block=1):
+    """tile slots as the game has them: tile set at 146, extra tile block `block` (1-based) at 346"""
     vram = bytearray(1024 * 64)
-    for o, slot in G.area_tiles(d, a, starts):
+    ts = G.area_tiles(d, a, starts)
+    for k, (o, slot) in enumerate(ts):
+        if k > 0 and k != block: continue
+        slot = 146 if k == 0 else 346
         raw = decoded.get(o) or b''
         n = min(len(raw), len(vram) - slot * 64)
         if n > 0: vram[slot * 64:slot * 64 + n] = raw[:n]
     return np.frombuffer(bytes(vram), np.uint8).reshape(1024, 8, 8)
+
+
+def screen_blocks(d, a):
+    """extra tile block per screen (area record +0x18), carrying the last non-zero one forward (as the game does)"""
+    raw = d[a['bytes'] - ROM:a['bytes'] - ROM + a['sw'] * a['sh']]
+    out, cur = [], next((b for b in raw if b), 1)
+    for b in raw:
+        cur = b or cur; out.append(cur)
+    return out
 
 
 def layer_grid(d, a, li):
@@ -99,11 +116,23 @@ def extract(d, out, reg, decoded, starts):
     Image.fromarray(fl, 'RGBA').save(os.path.join(md, 'flags.png'))
     for a in G.areas(d):
         i = a['index']; pal = G.palette_rgb(d, a['palette'] - ROM, 256)
-        tiles = vram_tiles(d, a, decoded, starts)
-        sheet = tiles.reshape(64, 16, 8, 8).transpose(0, 2, 1, 3).reshape(512, 128)
-        im = Image.fromarray(sheet, 'P'); im.putpalette(pal); im.save(os.path.join(md, 'tiles', 'area%02d.png' % i))
+        blocks = screen_blocks(d, a)
+        nblk = len(G.area_tiles(d, a, starts)) - 1
+        tiles_by = {b: vram_tiles(d, a, decoded, starts, b) for b in set(blocks) | {1}}
+        for b in range(1, max(nblk, 1) + 1):
+            t = tiles_by.get(b) if b in tiles_by else vram_tiles(d, a, decoded, starts, b)
+            sheet = t.reshape(64, 16, 8, 8).transpose(0, 2, 1, 3).reshape(512, 128)
+            im = Image.fromarray(sheet, 'P'); im.putpalette(pal)
+            im.save(os.path.join(md, 'tiles', 'area%02d%s.png' % (i, '' if b == 1 else '_block%d' % b)))
         grids = [layer_grid(d, a, li) for li in range(3)]
-        Image.fromarray(render(tiles, pal, grids[::-1])).save(os.path.join(md, 'preview', 'area%02d.png' % i))
+        img = np.zeros((a['h'] * 8, a['w'] * 8, 3), np.uint8)
+        for b in set(blocks):         # each screen drawn with the tile block it uses
+            part = render(tiles_by[b], pal, grids[::-1])
+            for k, bb in enumerate(blocks):
+                if bb != b: continue
+                sy, sx = divmod(k, a['sw'])
+                img[sy * 160:sy * 160 + 160, sx * 240:sx * 240 + 240] = part[sy * 160:sy * 160 + 160, sx * 240:sx * 240 + 240]
+        Image.fromarray(img).save(os.path.join(md, 'preview', 'area%02d.png' % i))
         x = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<map version="1.10" orientation="orthogonal" renderorder="right-down" width="%d" height="%d" '
              'tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="1">' % (a['w'], a['h']),

@@ -2,19 +2,26 @@
 
 assets/areas/areaNN.json, one per area record (see maps.py). The area record's +0x14 points to an info block, read by
 the area loader sub_08001FA8:
-  +0x00 u8 music track (0xFF = none), 7 more bytes ("header", kept as hex)
+  +0x00 u8 music track (0xFF = none), then tile animation (sub_08005B38, each frame): u8 speed (added to a counter
+        every frame; one animation step per 64), u16 first_tile, u16 count (tile slots that animate; 0 = none),
+        u8 b6 (unused), u8 frames_mask (tiles cycle in groups of frames_mask + 1: e.g. 3 = 4-frame water). The frames
+        are the `count` tiles copied from first_tile when the area loads.
   +0x08 count, +0x0C -> actors   12 bytes each, created by sub_080058D6:
-        u16 x, u16 y (pixels), u8 sprite (character sprite set, see SPRITES), u8 show (0 always, 1 unless the story
-        flag is set, 2 only if it is set), u16 flag, u8 kind (2 = enemy; 0 and 1 = characters, param = what they say),
-        u8 param, u8 b10, u8 b11
+        u16 x, u16 y (pixels), u8 sprite (character sprite set, see SPRITES), u8 show (0 always, 1 until quest
+        quest_of_flag[flag] is done, 2 only after), u16 flag, u8 kind (2 = enemy; 1 = character who resumes their
+        conversation set where it stopped; 0 = character with their own place in it, starting at `entry`),
+        u8 param (conversation set), u8 entry, u8 b11 (always 0)
   +0x10 count, +0x14 -> pickups  8 bytes each: u16 x, u16 y, u32 id (sub_0800D1A0: what you find, e.g. a capsule)
-  +0x18 count, +0x1C -> triggers pointer list to zone records {u32 callback, s16 x1, y1, x2, y2, u8 mode, u8 b13, ...}:
+  +0x18 count, +0x1C -> triggers pointer list to zone records {u32 callback, s16 x1, y1, x2, y2, u8 mode, u8 arg, ...}
+        (mode: 1 = works on foot, 2 = while flying, 3 = both; arg: the conversation set for events, else 0):
         warp     (sub_0800356C) u16 to_area, u16 x, u16 y: walking into the rectangle loads that area at x, y
         hp_zone  (sub_080042B4) u16 b14, s32 hp: changes HP by that much once a second while inside
-        event    (sub_080061B0) u8 set, u8 entry (b13 = set): starts that conversation
+        event    (sub_080061B0) arg = set, u8 entry: starts that conversation
         message  (sub_080061D0) shows a text (the text itself is in assets/text/strings.txt)
   +0x20 count, +0x24 -> objects  8 bytes each: u16 type (gUnknown_0815B948), u16 b2, u16 x, u16 y (sub_0800697E)
   +0x28 u16 x, u16 y: where the debug area select puts the player
+The area record's +0x18 (screen_tiles): one byte per screen; entering a screen whose byte is n > 0 loads the area's
+n-th extra tile block into tile slots 346+ (sub_0800D276 via sub_08004EF4); 0 = keep what is loaded.
 Lists can grow or shrink (they are moved to the end of the data if they grow). Trigger zones can be edited and new
 warps / hp zones / events added; a trigger's kind can't change.
 """
@@ -47,13 +54,16 @@ def info_of(d, a):
 
 def read_area(d, a, names):
     o, lists = info_of(d, a)
-    out = dict(area=a['index'], size_tiles=[a['w'], a['h']], music=d[o], header=d[o + 1:o + 8].hex(),
-               start=list(struct.unpack_from('<2H', d, o + 0x28)))
+    sp, first, cnt, b6, mask = struct.unpack_from('<BHHBB', d, o + 1)
+    out = dict(area=a['index'], size_tiles=[a['w'], a['h']], music=d[o],
+               tile_anim=dict(first_tile=first, count=cnt, frames_mask=mask, speed=sp, b6=b6),
+               start=list(struct.unpack_from('<2H', d, o + 0x28)),
+               screen_tiles=list(d[a['bytes'] - ROM:a['bytes'] - ROM + a['sw'] * a['sh']]))
     n, p = lists['actors']; acts = []
     for k in range(n):
-        x, y, spr, show, flag, kind, param, b10, b11 = struct.unpack_from('<HHBBHBBBB', d, p - ROM + 12 * k)
+        x, y, spr, show, flag, kind, param, entry, b11 = struct.unpack_from('<HHBBHBBBB', d, p - ROM + 12 * k)
         acts.append(dict(x=x, y=y, sprite=names[spr] if spr < len(names) else spr, show=show, flag=flag, kind=kind,
-                         param=param, b10=b10, b11=b11))
+                         param=param, entry=entry, b11=b11))
     out['actors'] = acts
     n, p = lists['pickups']
     out['pickups'] = [dict(zip(('x', 'y', 'id'), struct.unpack_from('<HHI', d, p - ROM + 8 * k))) for k in range(n)]
@@ -63,8 +73,8 @@ def read_area(d, a, names):
     for k in range(n):
         t = u32(d, p - ROM + 4 * k) - ROM
         kind = CALLBACKS.get(u32(d, t), 'raw')
-        x1, y1, x2, y2, mode, b13 = struct.unpack_from('<4hBB', d, t + 4)
-        e = dict(label=L.name_at(t), kind=kind, rect=[x1, y1, x2, y2], mode=mode, b13=b13)
+        x1, y1, x2, y2, mode, arg = struct.unpack_from('<4hBB', d, t + 4)
+        e = dict(label=L.name_at(t), kind=kind, rect=[x1, y1, x2, y2], mode=mode, arg=arg)
         if kind == 'warp':
             e.update(zip(('to_area', 'to_x', 'to_y'), struct.unpack_from('<3H', d, t + 0xE)))
         elif kind == 'hp_zone':
@@ -84,7 +94,7 @@ SIZES = {'warp': 0x14, 'hp_zone': 0x14, 'event': 0x10, 'message': 0x14}
 
 def trigger_body(e):
     """bytes after the callback word (message: up to the text pointer)"""
-    b = struct.pack('<4hBB', *e['rect'], e['mode'], e['b13'])
+    b = struct.pack('<4hBB', *e['rect'], e['mode'], e['arg'])
     if e['kind'] == 'warp': b += struct.pack('<3H', e['to_area'], e['to_x'], e['to_y'])
     elif e['kind'] == 'hp_zone': b += struct.pack('<Hi', e['b14'], e['hp'])
     elif e['kind'] == 'event': b += bytes([e['entry'], e['b15']])
@@ -113,16 +123,21 @@ def build(d, a_entry, path, ctx):
     new, old = json.load(open(path)), read_area(d, a, names)
     o, lists = info_of(d, a)
     put, put_s = ctx['put'], ctx['put_s']
-    if new['music'] != old['music'] or new['header'] != old['header']:
-        put(o, o + 8, bytes([new['music']]) + bytes.fromhex(new['header']), 'ainfo')
+    if new['music'] != old['music'] or new['tile_anim'] != old['tile_anim']:
+        t = new['tile_anim']
+        put(o, o + 8, bytes([new['music']]) + struct.pack('<BHHBB', t['speed'], t['first_tile'], t['count'], t['b6'],
+                                                         t['frames_mask']), 'ainfo')
     if new['start'] != old['start']: put(o + 0x28, o + 0x2C, struct.pack('<2H', *new['start']), 'astart')
+    if new['screen_tiles'] != old['screen_tiles']:
+        if len(new['screen_tiles']) != len(old['screen_tiles']): raise SystemExit('%s: screen_tiles: one per screen' % path)
+        put(a['bytes'] - ROM, a['bytes'] - ROM + len(old['screen_tiles']), bytes(new['screen_tiles']), 'ascr')
 
     def sprite_id(s):
         return names.index(s) if isinstance(s, str) else int(s)
 
     packers = {
         'actors': (12, lambda e: struct.pack('<HHBBHBBBB', e['x'], e['y'], sprite_id(e['sprite']), e['show'], e['flag'],
-                                              e['kind'], e['param'], e['b10'], e['b11'])),
+                                              e['kind'], e['param'], e['entry'], e['b11'])),
         'pickups': (8, lambda e: struct.pack('<HHI', e['x'], e['y'], e['id'])),
         'objects': (8, lambda e: struct.pack('<4H', e['type'], e['b2'], e['x'], e['y']))}
     slot = {'actors': 0x08, 'pickups': 0x10, 'triggers': 0x18, 'objects': 0x20}

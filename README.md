@@ -76,4 +76,4 @@ make extract && make modern   # modding (see USER_README.md)
 
 ## Known limits
 * The C is GCC, not the original compiler: behaviourally tested, not byte-matching.
-* Every part of the game has an editor. A few fields are exported but not understood yet (`docs/progress.md`).
+* Every part of the game has an editor, and every data field the game reads is named (`docs/progress.md`).

@@ -35,7 +35,7 @@ its object and moves it to the appendix at the end of the data, and every pointe
 player of a conversation (0x080051D0) starts at an entry line and follows `next` until a line with speaker 0xFF; that
 line's `next` becomes the entry for the next time, which is how characters say something new the second time. Speakers
 are character sprite sets (their face is drawn). Characters name a set in their area `param`; kind 1 keeps the entry per
-set, kind 0 per character (initial entry = the actor's `b10`); conversation triggers give set and entry; story scripts
+set, kind 0 per character (initial entry = the actor's `entry`); conversation triggers give set and entry; story scripts
 move entries (0x0800536C). Each set file lists its lines; lines can be added at the end and any speaker, next or text
 changed. Changed text becomes a new string; the array is rewritten in place, or moved and its table entry repointed if
 it grows. `make verify-mods` plays Krillin's first conversation with a rewritten and an added line.
@@ -136,14 +136,14 @@ Format and rules are in the docstring of `tools/assets/maps.py`. In short: `gAre
 0x081CA09C) has 42 records; an area is a grid of 30x20-tile screens on three 8 bpp BG layers, plus three 1-bit-per-tile
 masks (the first is where the player can walk). Its tiles are the area tile set at slot 146 and extra tile blocks from
 slot 346 (slots 0-145 hold the text font). Each `areaNN.tmx` has layers `bg3 (bottom)`, `bg2`, `bg1 (top)` (tile gid =
-slot + 1, with Tiled's flip flags) and `walkable`, `mask1`, `mask2` (the red flag tile = set). Edited screens used once
+slot + 1, with Tiled's flip flags) and `walkable`, `flyable`, `shots` (the red flag tile = set; flying mode and ki blasts use the latter two). Edited screens used once
 are rewritten in place; screens shared with another place (14 are) and empty screens that get tiles become new objects,
 and only that layer and position's pointer changes. Map sizes can't change. What stands in an area is in `areas/`
-(next section); the record's `+0x18` byte table is not decoded yet.
+(next section); the record's `+0x18` byte table picks the extra tile block for each screen (`screen_tiles`).
 
 ## Areas: characters, enemies, warps
 Field-by-field format in the docstring of `tools/assets/areas.py`. Each area record's `+0x14` points to an info block
-that the area loader (0x08001FA8, also what warps call) walks: music track, a list of actors (12 bytes: position, sprite set, show-if story
+that the area loader (0x08001FA8, also what warps call) walks: music track, tile animation (`sub_08005B38`), a list of actors (12 bytes: position, sprite set, show-if story
 flag, kind 2 = enemy, otherwise a character and what they say), pickups (8 bytes, `sub_0800D1A0`), objects (8 bytes,
 `sub_0800697E`), and a list of pointers to trigger zones: rectangles with a callback (warp `sub_0800356C`: area and
 position; HP zone `sub_080042B4`: HP change per second; conversation `sub_080061B0`; message `sub_080061D0`). Enemy
@@ -157,7 +157,7 @@ area's trigger list is rewritten. `make verify-mods` checks in the emulator that
 ## Tables
 `tools/assets/tables.py` documents the fields. `enemies.csv` is `gEnemyTable` (0x086B6094, 34 entries of 0x40 bytes,
 read by the enemy constructor 0x08006D90): exp, hp, defense (subtracted in full, by half or by a quarter from each hit,
-0x08007352), power and 17 unnamed AI/movement values. `levels.csv` is the player's level table (0x080114A8, 25 rows):
+0x08007352), power and 17 AI values (idle mode, reaction, courage, group, sight, home/goto points, speed; read by `sub_0800755A`). `levels.csv` is the player's level table (0x080114A8, 25 rows):
 EXP needed, max HP, power and the ki counter. Both are written in place and checked in game by `make verify-mods` (max HP of the player; HP of an
 added wolf).
 
