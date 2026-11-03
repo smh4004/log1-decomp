@@ -367,12 +367,9 @@ def bios_hle(uc):
         q = abs(a) // abs(b) * (1 if (a < 0) == (b < 0) else -1); r = a - q * b
         uc.reg_write(UC_ARM_REG_R0, q & 0xFFFFFFFF); uc.reg_write(UC_ARM_REG_R1, r & 0xFFFFFFFF); uc.reg_write(UC_ARM_REG_R3, abs(q))
     elif num in (0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18):
-        try:
-            src = bytes(uc.mem_read(r0, 4)); n = int.from_bytes(src[1:4], 'little')
-            src = bytes(uc.mem_read(r0, min(0x40000, max(4, (n * 9) // 8 + 0x1000))))
-        except Exception:
-            try: src = bytes(uc.mem_read(r0, 0x1000))
-            except Exception: return False
+        end = next((e + 1 for b, e, _ in uc.mem_regions() if b <= r0 <= e), None)
+        if end is None: return False
+        src = bytes(uc.mem_read(r0, min(0x40000, end - r0)))       # the decoders stop at the end of the data
         f = {0x11: dec.lz77, 0x12: dec.lz77, 0x13: dec.huffman, 0x14: dec.rle, 0x15: dec.rle}.get(num)
         r = f(src, 0) if f else bios.diff_decode(src, 0, 1 if num in (0x16, 0x17) else 2)
         if r is None: return False
@@ -382,6 +379,48 @@ def bios_hle(uc):
         return False
     uc.reg_write(UC_ARM_REG_PC, nxt | (1 if thumb else 0))
     return True
+
+
+DMA = [(0x040000B0 + 12 * k, k) for k in range(4)]
+
+
+def dma_hooks(uc):
+    """Immediate DMA (start timing 0): copy when the enable bit is written, and clear it when the code reads the
+    control register back (the copy is done by then), so `while (REG_DMA3CNT & 0x80000000)` loops end. DMA started by
+    VBlank, HBlank or the sound FIFO isn't run."""
+    from unicorn import UC_HOOK_MEM_WRITE, UC_HOOK_MEM_READ
+    def write(uc_, acc, a, size, val, ud):
+        for base, k in DMA:
+            cnt = base + 8
+            if a <= cnt + 2 < a + size:                       # the write covers CNT_H
+                hi = (val >> (8 * (cnt + 2 - a))) & 0xFFFF
+                lo = (val & 0xFFFF) if a == cnt and size == 4 else int.from_bytes(uc_.mem_read(cnt, 2), 'little')
+                if hi & 0x8000 and not hi & 0x3000: run_dma(uc_, base, k, lo, hi)
+    def read(uc_, acc, a, size, val, ud):
+        for base, k in DMA:
+            cnt = base + 8
+            if a <= cnt + 3 and a + size > cnt + 2:
+                hi = int.from_bytes(uc_.mem_read(cnt + 2, 2), 'little')
+                if hi & 0x8000 and not hi & 0x3000: uc_.mem_write(cnt + 2, (hi & 0x7FFF).to_bytes(2, 'little'))
+    uc.hook_add(UC_HOOK_MEM_WRITE, write, None, 0x040000B0, 0x040000DF)
+    uc.hook_add(UC_HOOK_MEM_READ, read, None, 0x040000B0, 0x040000DF)
+
+
+def run_dma(uc, base, k, lo, hi):
+    src = int.from_bytes(uc.mem_read(base, 4), 'little') & (0x0FFFFFFF if k else 0x07FFFFFF)
+    dst = int.from_bytes(uc.mem_read(base + 4, 4), 'little') & (0x0FFFFFFF if k == 3 else 0x07FFFFFF)
+    n = lo or (0x10000 if k == 3 else 0x4000)
+    w = 4 if hi & 0x0400 else 2
+    ds = {0: w, 1: -w, 2: 0, 3: w}[(hi >> 5) & 3]; ss = {0: w, 1: -w, 2: 0, 3: w}[(hi >> 7) & 3]
+    src &= ~(w - 1); dst &= ~(w - 1)
+    try:
+        if ds == w and ss == w:
+            uc.mem_write(dst, bytes(uc.mem_read(src, n * w)))
+        else:
+            for i in range(n):
+                uc.mem_write(dst + i * ds, bytes(uc.mem_read(src + i * ss, w)))
+    except Exception:
+        pass                                                    # unmapped source/destination: like open bus, nothing
 
 
 def run_fn(rom, cand_img, entry, regs, mem, limit=3_000_000, cover=None):
@@ -395,6 +434,11 @@ def run_fn(rom, cand_img, entry, regs, mem, limit=3_000_000, cover=None):
     if cand_img:
         uc.mem_map(0x09000000, 0x100000); uc.mem_write(0x09000000, cand_img)
     uc.mem_map(MAGIC, 0x1000)
+    # open bus after the BIOS reads as 0 (the game does read 0x00004000), and the EEPROM save chip answers "ready"
+    # (bit 0 = 1) to every read; both the same in the two runs
+    uc.mem_map(0x4000, 0xC000)
+    uc.mem_map(0x0D000000, 0x1000); uc.mem_write(0x0D000000, b'\x01' * 0x1000)
+    dma_hooks(uc)
     for i in range(13): uc.reg_write(UC_ARM_REG_R0 + i, regs[i])
     uc.reg_write(UC_ARM_REG_SP, regs[13]); uc.reg_write(UC_ARM_REG_LR, MAGIC | 1)
     ev = {'swi': None}
@@ -402,6 +446,10 @@ def run_fn(rom, cand_img, entry, regs, mem, limit=3_000_000, cover=None):
         if not bios_hle(uc_):
             ev['swi'] = intno; uc_.emu_stop()
     uc.hook_add(UC_HOOK_INTR, intr)
+    if os.environ.get('UNMAPPED_LOG'):          # debugging: print accesses outside the mapped memory
+        from unicorn import UC_HOOK_MEM_UNMAPPED
+        uc.hook_add(UC_HOOK_MEM_UNMAPPED, lambda uc_, acc, a, sz, v, ud: print('unmapped access %08X at pc %08X'
+                    % (a, uc_.reg_read(UC_ARM_REG_PC))) or False)
     if cover is not None:
         lo, hi, hits = cover
         uc.hook_add(UC_HOOK_CODE, lambda uc_, a, sz, ud: hits.add(a), None, lo, hi - 1)
