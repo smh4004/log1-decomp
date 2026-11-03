@@ -14,6 +14,9 @@ from concurrent.futures import ProcessPoolExecutor
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 os.chdir(ROOT)
+# per-game values (the rest of this file is shared with the sister projects)
+GAME = 'log1'
+HALT = (0x080099EA, 'r5', 2, 'r4')     # WaitForVBlank's `svc 2`: flag halfword at reg+offset, bits it waits for in reg
 B = '.analysis/decomp'
 CC = ['arm-none-eabi-gcc', '-mthumb', '-mcpu=arm7tdmi', '-O2', '-std=gnu11', '-ffreestanding', '-fsigned-char',
       '-fno-builtin', '-fno-strict-aliasing', '-fwrapv', '-fno-delete-null-pointer-checks', '-fno-common', '-w',
@@ -101,7 +104,7 @@ def rom_symbol(a):
     global _ROMSYMS
     if _ROMSYMS is None:
         import bisect
-        out = subprocess.run(['arm-none-eabi-nm', '-n', 'log1.elf'], capture_output=True, text=True).stdout
+        out = subprocess.run(['arm-none-eabi-nm', '-n', GAME + '.elf'], capture_output=True, text=True).stdout
         syms = []
         for l in out.split('\n'):
             p = l.split()
@@ -129,7 +132,7 @@ def access_widths(a, e):
     (literal-pool constant in a register, then ldr/ldrh/ldrb/str... [rN, #k])."""
     if (a, e) in _WIDTHS: return _WIDTHS[(a, e)]
     import capstone
-    rom = open('log1.gba', 'rb').read()
+    rom = open(GAME + '.gba', 'rb').read()
     md = capstone.Cs(capstone.CS_ARCH_ARM, capstone.CS_MODE_THUMB); md.detail = True
     from capstone import arm
     const, out = {}, {}
@@ -251,7 +254,7 @@ def cmd_tus():
     allnames = set(F)
     os.makedirs(B + '/tu', exist_ok=True)
     st = {}
-    rom = open('log1.gba', 'rb').read()
+    rom = open(GAME + '.gba', 'rb').read()
     for n, (a, e) in R.items():
         f = F.get(n)
         if not f: st[n] = {'status': 'no-ghidra'}; continue
@@ -302,7 +305,7 @@ def cmd_compile():
     st = json.load(open(B + '/status.json'))
     os.makedirs(B + '/obj', exist_ok=True)
     # symbol table of the matching build (make first); candidates link against it
-    subprocess.run(['cp', 'log1.elf', B + '/allsyms.elf'], check=True)
+    subprocess.run(['cp', GAME + '.elf', B + '/allsyms.elf'], check=True)
     todo =[n for n, v in st.items() if v['status'] not in ('rejected', 'no-ghidra')]
     for n in todo:
         with open('%s/obj/%s.abs.ld' % (B, n), 'w') as f:
@@ -353,13 +356,14 @@ def bios_hle(uc):
     else:
         return False
     r0, r1 = uc.reg_read(UC_ARM_REG_R0), uc.reg_read(UC_ARM_REG_R1)
-    if num == 2 and at == 0x080099EA:
-        # Halt inside WaitForVBlank: it sleeps until the interrupt handler sets one of the bits it waits for (r4) in
-        # the halfword at r5+2. Model the interrupt as having happened: set those bits (and nothing else), so a
+    if num == 2 and at == HALT[0]:
+        # Halt inside WaitForVBlank: it sleeps until the interrupt handler sets one of the bits it waits for (in a
+        # register) in a flag halfword (HALT). Model the interrupt as having happened: set those bits (and nothing else), so a
         # function that waits for frames runs to completion, the same way in both runs.
-        from unicorn.arm_const import UC_ARM_REG_R4, UC_ARM_REG_R5
-        p = uc.reg_read(UC_ARM_REG_R5) + 2
-        v = int.from_bytes(uc.mem_read(p, 2), 'little') | (uc.reg_read(UC_ARM_REG_R4) & 0xFFFF)
+        import unicorn.arm_const as R
+        reg = lambda n: uc.reg_read(getattr(R, 'UC_ARM_REG_' + n.upper()))
+        p = reg(HALT[1]) + HALT[2]
+        v = int.from_bytes(uc.mem_read(p, 2), 'little') | (reg(HALT[3]) & 0xFFFF)
         uc.mem_write(p, v.to_bytes(2, 'little'))
     elif num == 6:
         a, b = struct.unpack('<ii', struct.pack('<II', r0, r1))
@@ -413,6 +417,7 @@ def run_dma(uc, base, k, lo, hi):
     w = 4 if hi & 0x0400 else 2
     ds = {0: w, 1: -w, 2: 0, 3: w}[(hi >> 5) & 3]; ss = {0: w, 1: -w, 2: 0, 3: w}[(hi >> 7) & 3]
     src &= ~(w - 1); dst &= ~(w - 1)
+    if 0x0D000000 <= dst < 0x0E000000: return             # a command sent to the EEPROM chip, not memory
     try:
         if ds == w and ss == w:
             uc.mem_write(dst, bytes(uc.mem_read(src, n * w)))
@@ -492,6 +497,9 @@ def compare(o, c, sp0, retvoid=False, r0_in=None, entry=None, lr=None):
         if o['regs'][i] != c['regs'][i]: return 'r%d' % i
     for b in o['mem']:
         x, y = o['mem'][b], c['mem'][b]
+        if b == 0x04000000:            # DMA source/destination registers are write-only: the copy they cause is compared
+            for r_ in (0xB0, 0xBC, 0xC8, 0xD4):
+                x = x[:r_] + bytes(8) + x[r_ + 8:]; y = y[:r_] + bytes(8) + y[r_ + 8:]
         if b == 0x03000000:            # ignore the stack below the entry SP (dead temporaries)
             lo = max(0, sp0 - 0x03000000 - 0x1000); hi = min(len(x), sp0 - 0x03000000)
             x = x[:lo] + x[hi:]; y = y[:lo] + y[hi:]
@@ -504,7 +512,7 @@ def test_one(args):
     end, ninsn = (args[3], args[4]) if len(args) > 4 else (addr + 2, 1)
     retvoid = args[5] if len(args) > 5 else False
     hits = set()
-    rom0 = open('log1.gba', 'rb').read()
+    rom0 = open(GAME + '.gba', 'rb').read()
     # snapshots taken with a capture-only ROM variant (tools/harness/capture_variants.py) run against that ROM
     rmap = json.load(open(SNAPDIR + '/roms.json')) if os.path.exists(SNAPDIR + '/roms.json') else {}
     roms = {}
