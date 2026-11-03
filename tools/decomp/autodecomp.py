@@ -531,13 +531,9 @@ def cmd_test():
             if (only is None or n in only) and v['status'] in ('compiled', 'untested', 'accepted', 'rejected-equiv', 'inconclusive') and snaps.get(v['addr'])]
     for n, v in st.items():
         if v['status'] == 'compiled' and not snaps.get(v['addr']): v['status'] = 'untested'
-    if only:
-        for t in todo:
-            n, res, cov = test_one(t)
-            print(n, 'coverage %.0f%%' % (100 * cov), collections.Counter(res))
-        return
     with ProcessPoolExecutor() as ex:
-        for n, res, cov in ex.map(test_one, todo, chunksize=4):
+        for n, res, cov in ex.map(test_one, todo, chunksize=1 if only else 4):
+            if only: print(n, 'coverage %.0f%%' % (100 * cov), collections.Counter(res))
             st[n]['tests'] = res; st[n]['coverage'] = round(cov, 3)
             if any(r not in ('equal', 'equal-r0dead', 'equal-r0unread', 'inconclusive') for r in res): st[n]['status'] = 'rejected-equiv'
             elif 'equal' in res or 'equal-r0dead' in res or 'equal-r0unread' in res: st[n]['status'] = 'accepted'

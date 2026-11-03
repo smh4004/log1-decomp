@@ -14,6 +14,10 @@ the functions against that ROM's data.
 STRONG=1 makes a second set (tag warpNNs) with a strong level-1 Goku and another random seed.
 FRAMES (default 12000) sets the length of the random walk, PER_FN (default 3) the snapshots per function.
 
+SAVE=path.sav [SEEDS=4]: instead of warping, start from a save file (raw save-chip data: for a GameShark .gsv, the
+512 bytes at 0x430 with each 8-byte block reversed; the harness loads it read-only through HARNESS_SAVE), choose
+Continue and slot 1 at the title, and play at random from there (tag save_NAME_K, K = seed).
+
 These ROMs and snapshots are made from your ROM and stay in .analysis (git-ignored).
 """
 import os, sys, json, struct, subprocess, glob, shutil, random
@@ -53,7 +57,36 @@ def route(area, seed):
     return '\n'.join(['capture .analysis/capture_list.txt %s %d' % ('%s', PER_FN)] + r + ['capstat'])
 
 
+LOAD = ['run 3290', 'keys START', 'run 8', 'keys', 'run 80',        # title: Continue is the default with a save
+        'keys START', 'run 8', 'keys', 'run 120',                      # Load Game: slot 1
+        'keys A', 'run 8', 'keys', 'run 500']
+
+
+def capture_save(path):
+    name = os.path.splitext(os.path.basename(path))[0]
+    roms = json.load(open(SNAPS + '/roms.json')) if os.path.exists(SNAPS + '/roms.json') else {}
+    for k in range(int(os.environ.get('SEEDS', 4))):
+        tag = 'save_%s_%d_' % (name, k)
+        body = subprocess.run([sys.executable, 'tools/harness/make_explore.py', str(9000 + k), str(FRAMES)],
+                              capture_output=True, text=True, check=True).stdout.split('\n')
+        intro = [l for l in open('tools/harness/smoke.txt').read().split('\n')
+                 if l and not l.startswith('#') and not l.startswith('shot')]
+        body = [l for l in body[1 + len(intro):]]                       # drop make_explore's new-game intro
+        raw = '.analysis/snaps_raw/' + tag
+        shutil.rmtree(raw, ignore_errors=True); os.makedirs(raw)
+        rp = '%s/%s.txt' % (OUT, tag); os.makedirs(OUT, exist_ok=True)
+        open(rp, 'w').write('\n'.join(['capture .analysis/capture_list.txt %s %d' % (raw, PER_FN)] + LOAD + body + ['capstat']))
+        r = subprocess.run(['tools/harness/harness', 'log1.gba', rp, raw], capture_output=True, text=True,
+                           env=dict(os.environ, HARNESS_SAVE=os.path.abspath(path)))
+        n = 0
+        for s_ in glob.glob(raw + '/*.snap'):
+            addr, i = os.path.basename(s_)[:-5].split('_')
+            shutil.move(s_, '%s/%s_%s%s.snap' % (SNAPS, addr, tag, i)); n += 1
+        print(tag, 'snapshots:', n, (r.stdout.strip().split('\n') or [''])[-1], r.stderr.strip()[:200])
+
+
 def main():
+    if os.environ.get('SAVE'): return capture_save(os.environ['SAVE'])
     areas = [int(a) for a in sys.argv[1:]] or list(range(1, 42))
     info = {}
     for i in range(42):

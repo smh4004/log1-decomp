@@ -191,6 +191,9 @@ int main(int argc, char** argv) {
     vbuf = calloc(256 * 256, sizeof(color_t));
     core->setVideoBuffer(core, vbuf, 256);
     if (!mCoreLoadFile(core, argv[1])) { fprintf(stderr, "load failed\n"); return 1; }
+    /* HARNESS_SAVE=path.sav: start with that save chip content (raw EEPROM/flash/SRAM; the file is never written) */
+    const char* sav = getenv("HARNESS_SAVE");
+    if (sav && *sav && !mCoreLoadSaveFile(core, sav, true)) { fprintf(stderr, "save load failed: %s\n", sav); return 1; }
     core->reset(core);
     FILE* sc = fopen(argv[2], "r");
     if (!sc) { perror("script"); return 1; }
