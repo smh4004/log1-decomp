@@ -1,5 +1,5 @@
 /* sub_08002134  (original: 0x08002134-0x080022A4 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: equal, mem@03000000, r0.
+ * Ghidra decompilation, compiled with GCC; NOT equivalent: mem@03000000, r0.
  */
 #include "ghidra_types.h"
 extern int sub_0800F36C();

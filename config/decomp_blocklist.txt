@@ -25,3 +25,7 @@ sub_08008DBE  passes the snapshot tests but changes the game on tools/harness/de
 sub_08008E06  passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py)
 sub_0800A3A6  passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py)
 sub_0800A664  passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py)
+sub_080096CC  passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py)
+sub_0800B2DE  passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py)
+sub_0800E1FC  passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py)
+sub_0800E27C  passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py)

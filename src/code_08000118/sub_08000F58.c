@@ -1,5 +1,5 @@
 /* sub_08000F58  (original: 0x08000F58-0x08000F6C in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 55% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int __call_via_r1();

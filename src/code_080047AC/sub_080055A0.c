@@ -1,5 +1,5 @@
 /* sub_080055A0  (original: 0x080055A0-0x080055C4 in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 87% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_08004CAC();

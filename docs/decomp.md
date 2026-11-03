@@ -29,11 +29,11 @@ baserom.gba ──make──▶ log1.elf (matching, symbols)
 ## Tiers (current numbers)
 | File | Count | Meaning | Built by |
 |---|---:|---|---|
-| `config/decomp_verified.txt` | 171 | Equivalent to the original on every captured snapshot (up to 30 per function, from the Kame House routes and all 41 areas, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, cleared by the per-function whole-game bisect, **and** with all of them linked, no difference from the original on any checkpoint a pure timing change leaves intact (`wholegame.py`; see "Timing") | `make decomp` (= `DECOMP=1`) |
-| `config/decomp_tested.txt` | 112 | The same, including both whole-game checks (run with verified + tested linked), but less than 90% of the function was exercised | `make DECOMP=2` |
-| `config/decomp_untested.txt` | 158 | Compiles and links, but no snapshot exercised it (140 never reached, 18 only inconclusively: they never return, like `AgbMain`, or hit an unemulated BIOS call). **Unverified**: read it as Ghidra's best guess | `make DECOMP=3` (experimental) |
-| `config/decomp_failing.txt` | 47 | 24 differ from the original on at least one snapshot; 23 are blocklisted | never linked; the header comment says why |
-| `config/decomp_blocklist.txt` | 26 | 22 functions that passed the snapshots but changed the game in the whole-game check, 3 that can't be expressed in C or would erase data (see "What can't be replaced"), and the harness's frame-sync function `WaitForVBlank` | |
+| `config/decomp_verified.txt` | 181 | Equivalent to the original on every captured snapshot (up to 30 per function, from the Kame House routes and all 41 areas, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, cleared by the per-function whole-game bisect, **and** with all of them linked, no difference from the original on any checkpoint a pure timing change leaves intact (`wholegame.py`; see "Timing") | `make decomp` (= `DECOMP=1`) |
+| `config/decomp_tested.txt` | 107 | The same, including both whole-game checks (run with verified + tested linked), but less than 90% of the function was exercised | `make DECOMP=2` |
+| `config/decomp_untested.txt` | 150 | Compiles and links, but no snapshot exercised it (140 never reached, 10 only inconclusively: they never return, like `AgbMain`, or wait in a menu for a button). **Unverified**: read it as Ghidra's best guess | `make DECOMP=3` (experimental) |
+| `config/decomp_failing.txt` | 50 | 24 differ from the original on at least one snapshot; 26 are blocklisted (incl. 2 save-chip routines)| never linked; the header comment says why |
+| `config/decomp_blocklist.txt` | 30 | 26 functions that passed the snapshots but changed the game in the whole-game check, 3 that can't be expressed in C or would erase data (see "What can't be replaced"), and the harness's frame-sync function `WaitForVBlank` | |
 | `config/replaceable.txt` | 490 | Functions the build can swap out. 488 have C that compiles (23 of them hand-written, `tools/decomp/manual/`); the other 2 have no C equivalent | |
 
 Every `src/*.c` file starts with a header comment that gives the original address range, its tier, and how many snapshots it passed.
@@ -146,7 +146,9 @@ For each snapshot, run the **original** code from the ROM and then the **candida
 * every byte of EWRAM, IWRAM, IO, palette, VRAM and OAM, **except** the stack below the entry SP (scratch space that differs because GCC lays out frames differently).
 
 Calls out of the function run the original code in both runs, so a candidate is judged only on its own behaviour.
-BIOS calls are emulated at a high level, the same way in both runs: the decompressors (LZ77, Huffman, run-length,
+BIOS calls, immediate DMA (the copy is made, and the busy bit clears when read back; the write-only DMA address
+registers aren't compared), open bus after the BIOS (reads 0) and the EEPROM chip (answers "ready"; commands sent to
+it aren't stored) are emulated, the same way in both runs. BIOS calls at a high level: the decompressors (LZ77, Huffman, run-length,
 Diff8/16) with the decoders from `tools/bfdis/lz.py`, `Div`, and the `Halt` in `WaitForVBlank`, modelled as the VBlank
 interrupt having set the flag it waits for (so a function that waits a few frames runs to completion). Other BIOS
 calls and faults make the snapshot **inconclusive**. A function is **accepted** only if no snapshot differs and at least one is equal.
@@ -262,7 +264,7 @@ table that `sub_0800E4B0` walks at startup, which replacing it would erase.
 5. To promote a function to a better tier, more snapshots must reach it. Add a route that exercises it and capture with `harness ... capture`.
 
 ## Honest limits
-* **Untested ≠ wrong, but also ≠ right.** 158 replaceable functions (32%) have no conclusive snapshot: story events
+* **Untested ≠ wrong, but also ≠ right.** 150 replaceable functions (31%) have no conclusive snapshot: story events
   that depend on quest progress, the save chip, the ending, error paths. Their C is Ghidra's reading of the machine code
   (with the argument counts checked against it), with no execution evidence behind it.
 * **The whole-game check is limited by timing.** The game itself plays differently once its speed changes (see

@@ -1,5 +1,5 @@
 /* sub_0800E1FC  (original: 0x0800E1FC-0x0800E27C in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; snapshots inconclusive (BIOS call or fault before return).
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern int volatile DAT_03004810;

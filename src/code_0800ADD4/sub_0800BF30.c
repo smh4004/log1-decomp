@@ -1,5 +1,5 @@
 /* sub_0800BF30  (original: 0x0800BF30-0x0800BF4E in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 9/9 snapshots, 69% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 12/12 snapshots, 69% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_0800B436();

@@ -1,5 +1,5 @@
 /* Decompress  (original: 0x08009524-0x08009586 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; snapshots inconclusive (BIOS call or fault before return).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 73% of instructions covered.
  */
 #include "ghidra_types.h"
 extern undefined4 volatile DAT_0202c224;

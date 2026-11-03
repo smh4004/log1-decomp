@@ -1,5 +1,5 @@
 /* sub_0800162A  (original: 0x0800162A-0x08001690 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 55% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_08008D8A();

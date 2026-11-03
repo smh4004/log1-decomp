@@ -1,5 +1,5 @@
 /* sub_08003524  (original: 0x08003524-0x08003550 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 95% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern byte volatile DAT_0300004d;
