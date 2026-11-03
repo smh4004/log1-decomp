@@ -23,7 +23,7 @@ make patch          # when you're ready to share: log1_modern.bps
 ```
 With no changes, `make modern` produces the original ROM exactly. Never publish `assets/` or a ROM; publish the `.bps`.
 
-## 3. Text (`assets/text/strings.txt`)
+## 3. Text (`assets/text/strings.txt`; conversations are in section 9)
 Every string the game points to, one per line: `LABEL<TAB>text`. Find a line with
 `grep -n "words from the line" assets/text/strings.txt`, change the text after the tab, keep the label.
 * Any length: longer text moves automatically. Keep text boxes readable (the game wraps lines itself).
@@ -75,14 +75,24 @@ One JSON text file per area (open with any text editor; keep the commas and brac
 * `pickups`, `objects`: items to find and scenery objects. `music` = the area's music track.
 Area numbers match the map files (`area02.json` = `area02.tmx`); `start` is a safe position in each area to warp to.
 
-## 9. Testing and sharing
+## 9. Conversations (`assets/dialogue/setNN.txt`)
+Each file is one conversation set; each line is `INDEX: SPEAKER > NEXT | text`. The game shows a line (with the
+speaker's face; names as in `assets/areas/SPRITES.txt`), then goes to line NEXT, until a line `INDEX: end > NEXT`; next
+time that conversation starts at NEXT. So:
+* change a text: edit after the `|` (`{0A}` = new line). Any length.
+* add a line: give it the next free INDEX at the end of the file, and point an existing line's NEXT at it.
+* change who talks: the SPEAKER name.
+Which set a character uses is the `param` of the character in `assets/areas/areaNN.json`.
+
+## 10. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
 * `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
-  a palette, a map, a table and an area edit.
+  a palette, a map, a table, an area and a conversation edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 10. Limits
-* No editors yet for sprite sheets, the dialogue tree, music or the intro movies (see `docs/progress.md`). New areas
+## 11. Limits
+* No editors yet for sprite sheets, the story scripts (which conversation or event comes next), music or the intro
+  movies (see `docs/progress.md`). New areas
   can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

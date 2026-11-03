@@ -5,7 +5,7 @@
   assets.py build       assets/ -> build_modern/overrides/overrides.json + replacement blobs (only edited assets)
 
 Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is committed):
-  text      assets/text/strings.txt       every string the game points to (dialogue, menus, names): "LABEL<TAB>text".
+  text      assets/text/strings.txt       every other string the game points to (menus, names, story): "LABEL<TAB>text".
                                           Any length: a longer string moves to the end of the data and every pointer
                                           to it follows (pointers are symbols in data/*.s).
   blocks    assets/gfx/blocks/LABEL.bin   every BIOS-compressed block (Huffman / LZ77 / run-length / diff filter, decoded
@@ -18,6 +18,7 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   maps      assets/maps/areaNN.tmx        the 42 areas as Tiled maps: 3 tile layers + walkable/mask layers (maps.py)
   tables    assets/tables/*.csv           enemy stats and the player's level table (tables.py)
   areas     assets/areas/areaNN.json      characters, enemies, pickups, objects and trigger zones (warps...) (areas.py)
+  dialogue  assets/dialogue/setNN.txt     the 80 conversation sets: speaker, next line, text (dialogue.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -29,6 +30,7 @@ import gfxinfo as G
 import maps as M
 import tables as T
 import areas as AR
+import dialogue as DLG
 from const import ROM, RODATA
 
 
@@ -101,7 +103,8 @@ def extract(rom, out):
         man['assets'][name] = kw
 
     p = os.path.join(out, 'text', 'strings.txt'); os.makedirs(os.path.dirname(p), exist_ok=True)
-    st = strings(d)
+    conv = DLG.dialogue_texts(d)
+    st = [x for x in strings(d) if x[0] not in conv]
     with open(p, 'w', encoding='utf-8') as f:
         f.write('# Every string the game points to: "LABEL<TAB>text". Any length. {XX} = control character (0A = new line), {{ = brace.\n')
         for o, t, e in st: f.write('%s\t%s\n' % (L.name_at(o), esc(t)))
@@ -138,6 +141,7 @@ def extract(rom, out):
     M.extract(d, out, reg, decoded, {b[0] for b in blks})
     T.extract(d, out, reg)
     AR.extract(d, out, reg)
+    DLG.extract(d, out, reg, AR.sprites(d))
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -205,6 +209,8 @@ def build(rom, src, out):
             T.build(d, a, path, put)
         elif k == 'area':
             AR.build(d, a, path, ctx)
+        elif k == 'dialogue':
+            DLG.build(d, a, path, ctx, AR.sprites(d))
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))

@@ -43,5 +43,6 @@
  "palette_filter": true,
  "isolated_refcount": 0,
  "call_via": "0x0800E4A0",
- "syncpc": "0x080099F2"
+ "syncpc": "0x080099F2",
+ "string_tables": true
 }

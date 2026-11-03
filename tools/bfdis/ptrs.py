@@ -21,7 +21,7 @@ import struct, collections, bisect, re
 ROM = 0x08000000
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from game import SOUND_LO, SOUND_HI, NOPTR, PALETTE_FILTER, ISOLATED_REFCOUNT   # uncompressed sound region (samples + sequences); no-pointer ranges
+from game import SOUND_LO, SOUND_HI, NOPTR, PALETTE_FILTER, ISOLATED_REFCOUNT, STRING_TABLES   # uncompressed sound region (samples + sequences); no-pointer ranges
 
 
 def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
@@ -93,6 +93,12 @@ def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
         v = struct.unpack_from('<I', d, t)[0]
         return ROM <= v < ROM + image_end and v % 4 == 0 and methods_at(v - ROM)
 
+    def cstring_at(t):
+        # start of a C string: after a NUL (or 4-aligned), at least 3 printable characters with letters, then NUL
+        if not (ro_lo <= t < ro_hi) or (t % 4 and d[t - 1] != 0): return False
+        m = re.match(rb'[ -~\n]{3,}\x00', d[t:t + 512])
+        return bool(m) and re.search(rb'[A-Za-z]{2}', m.group()) is not None
+
     acc, amb = {}, {}
     cand = {}
     for o in range(ro_lo, ro_hi, 4):
@@ -147,6 +153,8 @@ def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
                     stride = True; break
         # without a neighbouring pointer the evidence is weak: also require an aligned target that is either
         # close by (same asset bank) or pointed to several times
+        if STRING_TABLES and (neighbour or stride or any((o + k) in cand for k in (-16, -12, 12, 16))) and cstring_at(t):
+            acc[o] = (w, 'strtable'); continue
         weak_ok = w % 4 == 0 and (abs(t - o) < 0x80000 or w in pool_targets or object_at(t) or ptrtable_at(t)
                                   or (ISOLATED_REFCOUNT and refcount[w] >= ISOLATED_REFCOUNT))
         if neighbour or (stride or refcount[w] >= 2) and weak_ok:
@@ -181,6 +189,8 @@ def classify(d, db, blocks, text_end, ro_lo, ro_hi, image_end):
                 hits = sum(1 for m in (-2, -1, 1, 2) if (o + m * st) in cand and abs(cand[o + m * st] - w) < 0x100000)
                 if hits >= 2: run = True; break
         bytepat = (w >> 16) & 0xFF == 0x08 and (w & 0xFF) == (w >> 8) & 0xFF      # e.g. 01 01 08 08: byte fields
+        if STRING_TABLES and not bytepat and cstring_at(w - ROM) and any((o + k) in cand for k in (-16, -12, -8, -4, 4, 8, 12, 16)):
+            acc[o] = (w, 'strtable'); continue
         if w - ROM >= text_end and (strong or run) and not bytepat:
             acc[o] = (w, 'table_odd')
         else:

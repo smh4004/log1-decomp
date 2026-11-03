@@ -11,7 +11,8 @@ make verify-mods      # self-test
 
 | What | Files | Tool |
 |---|---|---|
-| All text the game points to: dialogue, story, menus, names (977 strings) | `assets/text/strings.txt` | `tools/assets/assets.py` |
+| Conversations (80 sets, 988 lines: speaker, next line, text) | `assets/dialogue/setNN.txt` | `tools/assets/dialogue.py` |
+| All other text the game points to: story, menus, names | `assets/text/strings.txt` | `tools/assets/assets.py` |
 | Graphics and other packed data (182 BIOS-compressed blocks), drawn in their real colours | `assets/gfx/blocks/LABEL.bin` + `LABEL.png` | `tools/assets/assets.py`, `bios.py`, `gfxinfo.py` |
 | Palettes (every one those images and the areas use) | `assets/palettes/LABEL.pal` | `assets.py` |
 | The 42 area maps (3 tile layers + walkable/mask layers) | `assets/maps/areaNN.tmx` (Tiled) | `tools/assets/maps.py` |
@@ -23,6 +24,18 @@ make verify-mods      # self-test
 with letters). Labels exist where something points, so this covers dialogue (records `{u8 speaker, u8 id, u16, ptr}`
 point at each line), the opening story, menus and names. A string that fits is written in place; a longer one rewrites
 its object and moves it to the appendix at the end of the data, and every pointer to it follows.
+
+## Conversations
+`gConversationSets` (0x0815BF28) points to 80 arrays of 8-byte lines `{u8 speaker, u8 next, u16 0, u32 text}`. The
+player of a conversation (0x080051D0) starts at an entry line and follows `next` until a line with speaker 0xFF; that
+line's `next` becomes the entry for the next time, which is how characters say something new the second time. Speakers
+are character sprite sets (their face is drawn). Characters name a set in their area `param`; kind 1 keeps the entry per
+set, kind 0 per character (initial entry = the actor's `b10`); conversation triggers give set and entry; story scripts
+move entries (0x0800536C). Each set file lists its lines; lines can be added at the end and any speaker, next or text
+changed. Changed text becomes a new string; the array is rewritten in place, or moved and its table entry repointed if
+it grows. `make verify-mods` plays Krillin's first conversation with a rewritten and an added line.
+
+Texts that only conversations point to are no longer in `strings.txt` (one place to edit each text).
 
 ## Compressed blocks
 The game unpacks graphics with `Decompress(src, flags)` (0x08009524), which chains the BIOS decoders: Huffman (swi 0x13),
@@ -91,6 +104,6 @@ turns changed files into overrides, `tools/assets/apply.py` splices them into a 
 build links `log1_modern.gba`. This works because every pointer in the data is a symbol (`docs/shifting.md`).
 
 ## Not covered yet
-The area `+0x18` byte table, what the 17 enemy AI values do, the dialogue tree structure (speaker/next fields), sprite sheets, music and the
+The area `+0x18` byte table, what the 17 enemy AI values do, the story scripts that move conversation entries, (speaker/next fields), sprite sheets, music and the
 movie codec. The data is all reachable
 from the disassembly (`data/*.s`), and the code that reads it is in `ref/` and `src/`.

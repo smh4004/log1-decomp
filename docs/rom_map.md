@@ -28,7 +28,7 @@ routine from 0x08008840 to 0x03003D70).
 | 0x0800FE6C.. | menu strings ("Continue", technique names, "Save Game", ...) |
 | 0x08010BA4.. | character / sprite set names (`armyguy1`, `chichi`, `frieza1`, ...) and animation names (`Standing`, `Walking`, ...) |
 | 0x081CA168, 0x08337248, 0x084E4F44 | movie streams (header: size, ?, `0x00500078` = 120x80, 8) |
-| 0x0815DF88.. | dialogue records `{u8 speaker, u8 id, u16, u32 -> text}` |
+| 0x0815BF28 | conversation sets: 80 pointers to arrays of `{u8 speaker, u8 next, u16 0, u32 -> text}` (`tools/assets/dialogue.py`) |
 | 0x080114A8 | player level table: 25 x {exp, max HP, power, ki} (`tools/assets/tables.py`) |
 | 0x08019BC0-0x08142380 | 1,012 map screens, 30x20 u16 tile entries each (`tools/assets/maps.py`) |
 | 0x081C7C48 | area table: 42 x 0x34-byte records (pointer list at 0x081CA09C) |

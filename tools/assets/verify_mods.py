@@ -6,7 +6,7 @@
      re-packed logo tiles (screen differs from the original), the smoke route still reaches the first area and the menu,
      the area palette edit shows in game, the map edit (tiles + walkable mask) is in the ROM, the level-table edit
      gives the player 999 max HP in game, an added wolf is created with the edited enemy HP, and a new warp zone
-     takes the player to another area
+     takes the player to another area, and an edited conversation shows its rewritten and added lines
 Exits non-zero on any failure."""
 import os, sys, subprocess, shutil, hashlib
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -68,4 +68,19 @@ if wolf:
     out2 = run('tools/harness/harness log1_modern.gba build_modern/hp2.txt build_modern/verify_hp2')
     check('enemy table edit: that wolf has 777 HP in game', 'mem %08x: 00000309' % (wolf[0] + 0x4C) in out2)
 check('area edit: the new warp zone leads to area 2', re.search(r'mem 030005fc: 00000002', out) is not None)
+# the conversation check uses a build with only the dialogue edit (the other edits change where Goku walks)
+shutil.rmtree('assets', ignore_errors=True)
+run('make -s extract && python3 tools/assets/demo_edits.py dialogue && make -s modern')
+rom = open('log1_modern.gba', 'rb').read()
+open('build_modern/f3.txt', 'w').write('0800930A\n')
+lines = open('tools/harness/long.txt').read().split('\n')
+talk = lines[:lines.index('shot s22_back') + 5]          # walk left, then A next to Krillin
+open('build_modern/talk.txt', 'w').write('hitlog build_modern/f3.txt\n' + '\n'.join(talk) + '\n' + 'tap A 50\n' * 30)
+out = run('tools/harness/harness log1_modern.gba build_modern/talk.txt build_modern/verify_talk')
+shown = []
+for m in re.finditer(r'hit 0800930a \S+ \d+ r0-r3 \w+ (\w+)', out):
+    a = int(m.group(1), 16) - 0x08000000
+    if 0 <= a < len(rom): shown.append(rom[a:rom.index(b'\0', a)])
+check('dialogue edit: the rewritten line is shown in game', b'MOD TEST: Hey Gohan, this line was edited and grew longer!' in shown)
+check('dialogue edit: the added line is shown in game', b'MOD TEST: a brand new line from Master Roshi.' in shown)
 print('ALL OK' if ok else 'SOME CHECKS FAILED'); sys.exit(0 if ok else 1)

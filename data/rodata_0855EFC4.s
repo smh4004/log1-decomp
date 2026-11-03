@@ -201,6 +201,7 @@
 	.global gUnknown_085C2DB4
 	.global gUnknown_085C2DC0
 	.global gUnknown_085C2DC8
+	.global gUnknown_085C2DD4
 	.global gUnknown_085C2DE2
 	.global gUnknown_085C2E04
 	.global gUnknown_085C2E1A
@@ -1267,7 +1268,9 @@ gUnknown_085C2DC0:
 	.incbin "baserom.gba", 0x5C2DC0, 0x4
 	.4byte gUnknown_085C2DC8
 gUnknown_085C2DC8:
-	.incbin "baserom.gba", 0x5C2DC8, 0x1A
+	.incbin "baserom.gba", 0x5C2DC8, 0xC
+gUnknown_085C2DD4:
+	.incbin "baserom.gba", 0x5C2DD4, 0xE
 gUnknown_085C2DE2:
 	.incbin "baserom.gba", 0x5C2DE2, 0x22
 gUnknown_085C2E04:

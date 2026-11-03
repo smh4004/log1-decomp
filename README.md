@@ -5,8 +5,8 @@ A pret-style source tree for **Dragon Ball Z: The Legacy of Goku (USA)** (GBA, `
 * **A matching disassembly.** `make` rebuilds the original 8 MB ROM byte for byte from labelled assembly and data.
 * **Shiftable source.** Every pointer is a symbol, so code and data can grow, shrink and move. This is tested by
   inserting padding before everything and playing the game through an automated route (37/37 checkpoints identical).
-* **Modding toolkit** (`USER_README.md`, `docs/modding.md`): every string the game points to (dialogue, story, menus,
-  names; 977) as one text file; all 182 BIOS-compressed graphics blocks as PNGs in their real layout and colours
+* **Modding toolkit** (`USER_README.md`, `docs/modding.md`): all 80 conversations as editable scripts (speaker, next
+  line, text; lines can be added); every other string the game points to as one text file; all 182 BIOS-compressed graphics blocks as PNGs in their real layout and colours
   (faces, full screens, area tile sets), re-packed with Huffman / LZ77 / run-length / diff encoders on build; every
   palette as a JASC-PAL file; the 42 area maps as Tiled `.tmx` files (3 tile layers plus the walkable mask); what is
   in each area (characters, enemies, pickups, warps and other trigger zones) as JSON; enemy stats and the player's
@@ -51,7 +51,7 @@ make extract && make modern   # modding (see USER_README.md)
 | `src/`, `ref/` | decompiled C (tested) and Ghidra reference C for every function |
 | `config/` | `game.json` (layout and per-game switches), `symbols.txt`, `regions.yaml`, decomp tiers |
 | `tools/bfdis/` | disassembler (`analyze`, `emit`, `gen`, `ptrs` pointer classifier, `lz` BIOS stream finder) |
-| `tools/assets/` | modding toolkit (`assets.py`, `bios.py` encoders, `gfxinfo.py`, `maps.py`, `tables.py`, `areas.py`, `apply.py`) |
+| `tools/assets/` | modding toolkit (`assets.py`, `bios.py` encoders, `gfxinfo.py`, `maps.py`, `tables.py`, `areas.py`, `dialogue.py`, `apply.py`) |
 | `tools/decomp/`, `tools/ghidra/` | decompilation pipeline |
 | `tools/harness/` | emulator harness, routes, `shiftdiff.py`, `ramdiff.py` |
 | `docs/` | `rom_map.md`, `shifting.md`, `decomp.md`, `modding.md`, `toolchain.md`, `progress.md` |
@@ -61,7 +61,7 @@ make extract && make modern   # modding (see USER_README.md)
    more code, 7.6 MB of data. No RW image (the game copies its IWRAM routines itself).
 2. **Code discovery and matching assembly**: the shared disassembler found 864 functions; `make compare` matched on the
    first build.
-3. **Relocation**: 9,400 pointers made symbolic. This game needed new rules (BIOS stream detection, movie and palette
+3. **Relocation**: 9,432 pointers made symbolic. This game needed new rules (BIOS stream detection, movie and palette
    data, method tables, pointer arrays, inline pointers); each came from tracing one shift-test difference back to one ROM
    word (`docs/shifting.md`).
 4. **Decompilation**: Ghidra headless on the ELF, `autodecomp.py` (translation units, GCC, Unicorn equivalence on 2,868
@@ -75,4 +75,4 @@ make extract && make modern   # modding (see USER_README.md)
 
 ## Known limits
 * The C is GCC, not the original compiler: behaviourally tested, not byte-matching.
-* Dialogue tree fields, sprite sheets, music and the movie codec have no editors yet (`docs/progress.md`).
+* Story scripts, sprite sheets, music and the movie codec have no editors yet (`docs/progress.md`).
