@@ -33,7 +33,7 @@ Actions:
   warp (area, x, y)           go to area at x, y
   learn (bit)                 sets a bit in the ability flags (0x0300004D)
   scene (index)               cutscene `index` (table 0x0815A778)
-  actor_leave (area, sprite)  that character leaves (if the player is in `area`)
+  make_hostile (area, sprite)  that character turns into an enemy (if the player is in `area`; sub_0800573A)
   change_actor (area, sprite, param)  give a character in `area` another conversation set
   set_walkable (x1, y1, x2, y2, area) mark a rectangle of `area` walkable
   end_game                    game state change (credits)
@@ -60,7 +60,7 @@ TYPES = {
     0x08166B08: ('warp', 12, [('area', 'I'), ('x', 'H'), ('y', 'H')]),
     0x08166B20: ('end_game', 4, []),
     0x08166B28: ('learn', 8, [('bit', 'B')]),
-    0x08166B30: ('actor_leave', 8, [('area', 'B'), ('sprite', 'B')]),
+    0x08166B30: ('make_hostile', 8, [('area', 'B'), ('sprite', 'B')]),
     0x08166B38: ('set_entry', 8, [('set', 'B'), ('entry', 'B')]),
     0x08166B50: ('change_actor', 8, [('area', 'B'), ('sprite', 'B'), ('param', 'B')]),
     0x08166B58: ('set_walkable', 16, [('x1', 'h'), ('y1', 'h'), ('x2', 'h'), ('y2', 'h'), ('area', 'B')]),
