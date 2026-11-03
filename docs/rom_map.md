@@ -27,7 +27,7 @@ routine from 0x08008840 to 0x03003D70).
 |---|---|
 | 0x0800FE6C.. | menu strings ("Continue", technique names, "Save Game", ...) |
 | 0x08010BA4.. | character / sprite set names (`armyguy1`, `chichi`, `frieza1`, ...) and animation names (`Standing`, `Walking`, ...) |
-| 0x081CA168, 0x08337248, 0x084E4F44 | movie streams (header: size, ?, `0x00500078` = 120x80, 8) |
+| 0x081CA168, 0x08337248, 0x084E4F44 | the three movies: Autodesk FLI files (0xAF11, 120x80, 8 bpp; `tools/assets/movies.py`) |
 | 0x0815BF28 | conversation sets: 80 pointers to arrays of `{u8 speaker, u8 next, u16 0, u32 -> text}` (`tools/assets/dialogue.py`) |
 | 0x080114A8 | player level table: 25 x {exp, max HP, power, ki} (`tools/assets/tables.py`) |
 | 0x08019BC0-0x08142380 | 1,012 map screens, 30x20 u16 tile entries each (`tools/assets/maps.py`) |
@@ -41,7 +41,8 @@ routine from 0x08008840 to 0x03003D70).
 | 0x08543988 | actor flag -> quest number (88 bytes) |
 | 0x08166AC0-0x08166BF0 | vtables of the 27 quest task/action types |
 | 0x085C0C80 | character table: 84 records (palette, 76 frame records) (`tools/assets/sprites.py`); sprite set -> record: byte table 0x0815A709 |
-| 0x08591E4C / 0x08591F3C | sound sample table (20) / music track table (18) (`tools/assets/sound.py`) |
+| 0x08591E4C / 0x08591F3C | sound sample table (20) / music track table (18) (`tools/assets/sound.py`, `music.py`) |
+| 0x08142388 | music mask dictionary (14 bytes) |
 | 0x086B6094 | enemy table: 34 x 0x40 bytes (exp, AI values, power, hp, defense) |
 | 0x0855xxxx-0x0859xxxx | music: track tables, sequences, 8-bit PCM instruments (headers near 0x08591E70) |
 | 0x085C2E1A | opening story text |
@@ -50,7 +51,7 @@ routine from 0x08008840 to 0x03003D70).
 | Address | What |
 |---|---|
 | 0x08000274 | `AgbMain` |
-| 0x08004580 | movie frame decoder |
+| 0x080045F8 | movie player: FLI frame (0xF1FA) chunks 4, 7, 11, 12, 13, 15, 16 |
 | 0x08009524 | `Decompress(src, flags)`: bit 4 Huffman (swi 0x13), bit 3 LZ77 (swi 0x11), bit 2 run-length (swi 0x14), bit 1 Diff16 (swi 0x18), bit 0 Diff8 (swi 0x16) |
 | 0x08006D90 | object constructor: player (from the level stats) or enemy (from the enemy table) |
 | 0x08007352 | apply a hit: defense reduction, HP |

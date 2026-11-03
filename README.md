@@ -10,7 +10,8 @@ A pret-style source tree for **Dragon Ball Z: The Legacy of Goku (USA)** (GBA, `
   (faces, full screens, area tile sets), re-packed with Huffman / LZ77 / run-length / diff encoders on build; every
   palette as a JASC-PAL file; the 42 area maps as Tiled `.tmx` files (3 tile layers plus the walkable mask); what is
   in each area (characters, enemies, pickups, warps and other trigger zones) as JSON; enemy stats and the player's
-  level table as CSV; character sprite sheets as PNG; the 20 sound samples as WAV. Text can grow.
+  level table as CSV; character sprite sheets as PNG; the 20 sound samples as WAV; all 18 songs as tracker text; the 3 intro
+  movies as FLI files and PNG frames. Text can grow.
 * **A C decompilation.** Ghidra reference C for all 865 functions (`ref/`), and **58 functions run as GCC-compiled C** in
   `make decomp`, a ROM that plays all three test routes identically to the original. Each was checked for equivalence
   against the original machine code first. Another 47 pass their tests but aren't whole-game clean yet, and 190 compile
@@ -51,7 +52,7 @@ make extract && make modern   # modding (see USER_README.md)
 | `src/`, `ref/` | decompiled C (tested) and Ghidra reference C for every function |
 | `config/` | `game.json` (layout and per-game switches), `symbols.txt`, `regions.yaml`, decomp tiers |
 | `tools/bfdis/` | disassembler (`analyze`, `emit`, `gen`, `ptrs` pointer classifier, `lz` BIOS stream finder) |
-| `tools/assets/` | modding toolkit (`assets.py`, `bios.py` encoders, `gfxinfo.py`, `maps.py`, `tables.py`, `areas.py`, `dialogue.py`, `quests.py`, `sprites.py`, `sound.py`, `apply.py`) |
+| `tools/assets/` | modding toolkit (`assets.py`, `bios.py` encoders, `gfxinfo.py`, `maps.py`, `tables.py`, `areas.py`, `dialogue.py`, `quests.py`, `sprites.py`, `sound.py`, `music.py`, `movies.py`, `apply.py`) |
 | `tools/decomp/`, `tools/ghidra/` | decompilation pipeline |
 | `tools/harness/` | emulator harness, routes, `shiftdiff.py`, `ramdiff.py` |
 | `docs/` | `rom_map.md`, `shifting.md`, `decomp.md`, `modding.md`, `toolchain.md`, `progress.md` |
@@ -75,4 +76,4 @@ make extract && make modern   # modding (see USER_README.md)
 
 ## Known limits
 * The C is GCC, not the original compiler: behaviourally tested, not byte-matching.
-* Music patterns (notes) and the movie codec have no editors yet (`docs/progress.md`).
+* Every part of the game has an editor. A few fields are exported but not understood yet (`docs/progress.md`).

@@ -8,7 +8,8 @@
      gives the player 999 max HP in game, an added wolf is created with the edited enemy HP, and a new warp zone
      takes the player to another area, an edited conversation shows its rewritten and added lines, an edited quest completes and gives its new EXP reward, a
      sprite sheet edit changes how Goku is drawn, the title music plays a replaced (longer) sample, the
-     title song re-encoded and moved by the music tool plays the same audio (mixer buffers), and transposed it doesn't
+     title song re-encoded and moved by the music tool plays the same audio (mixer buffers), and transposed it doesn't;
+     movie 2 (boot) re-encoded from its frames looks identical while booting, and edited frames show
 Exits non-zero on any failure."""
 import os, sys, subprocess, shutil, hashlib
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -123,4 +124,27 @@ for mode in ('music_same', 'music'):
         check('music: the title song, re-encoded and moved, sounds the same (60/60 buffers)', moved and same == 60)
     else:
         check('music: the transposed title song sounds different', moved and same < 10)
+open('build_modern/boot.txt', 'w').write('run 30\nshot f0\n' + ''.join('run 30\nshot f%d\n' % i for i in range(1, 110)))
+ref_boot = shots('log1.gba', 'build_modern/boot.txt', 'build_modern/verify_boot_ref')
+for mode in ('movie_same', 'movie'):
+    shutil.rmtree('assets', ignore_errors=True)
+    run('make -s extract && python3 tools/assets/demo_edits.py %s && make -s modern' % mode)
+    rom = open('log1_modern.gba', 'rb').read()
+    b = shots('log1_modern.gba', 'build_modern/boot.txt', 'build_modern/verify_boot_' + mode)
+    same = sum(b[k] == ref_boot[k] for k in ref_boot)
+    if mode == 'movie_same':
+        sys.path[:0] = ['tools/assets']
+        import movies as MV, numpy as np
+        base = open('baserom.gba', 'rb').read()
+        fa = MV.decode(base[0x337248:0x337248 + MV.u32(base, 0x337248)])
+        fb = MV.decode(rom[0x337248:0x337248 + MV.u32(rom, 0x337248)])
+        exact = len(fa) == len(fb) and all(np.array_equal(x[0], y[0]) and np.array_equal(x[1], y[1]) for x, y in zip(fa, fb))
+        # a re-encoded movie decodes to the same frames; the game may show a frame one VBlank later or earlier,
+        # because decode time depends on the encoding, so a few sampled screens can differ
+        check('movie: movie 2 re-encoded from its frames: same frames, boot looks the same (%d/%d screens)'
+              % (same, len(ref_boot)), exact and rom[0x337248:0x337250] != base[0x337248:0x337250] and same >= 0.9 * len(ref_boot))
+        same_resaved = same
+    else:
+        check('movie: the edited frames of movie 2 show in game (%d more screens differ)' % (same_resaved - same),
+              same_resaved - same >= 5)
 print('ALL OK' if ok else 'SOME CHECKS FAILED'); sys.exit(0 if ok else 1)

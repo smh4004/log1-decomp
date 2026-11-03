@@ -1,8 +1,8 @@
 # User guide: making mods for Dragon Ball Z: The Legacy of Goku
 
 You can change all of the game's text and conversations, the story (quests), its graphics, palettes and character
-sprites, its maps, who and what is in each area (characters, enemies, warps), enemy stats, the player's levels and the
-sound samples, build a playable ROM, and share it as a patch, without knowing assembly or C.
+sprites, its maps, who and what is in each area (characters, enemies, warps), enemy stats, the player's levels,
+the sound samples, the music and the intro movies, build a playable ROM, and share it as a patch, without knowing assembly or C.
 
 ## 1. Setup (once)
 ```sh
@@ -107,17 +107,32 @@ The colours themselves are in `assets/palettes/` (see `manifest.json` for which 
 ## 12. Sounds (`assets/sound/`)
 `sampleNN.wav` are the 20 instrument and effect samples. Replace one with your own WAV (mono or stereo, 8 or 16 bit,
 any rate and length; keep it short, the GBA has little space). `samples.json` holds loop settings: `loop` 0 = play
-once, 1 or 3 = loop from `loop_start` (in samples). The music's notes can't be edited yet.
+once, 1 or 3 = loop from `loop_start` (in samples).
 
-## 13. Testing and sharing
+**Music** (`assets/music/songNN.txt`): every song as tracker text. `tempo` and `speed` set the pace, `order` lists
+the patterns in play order (the song loops back to the start), and each pattern row lists what channels do:
+`CHANNEL NOTE SAMPLE VOLUME EFFECT`, for example `2 C-5 03 64 ...` = channel 2 plays C-5 with sample 3 (the WAV
+numbers above) at full volume (0-64). `=` repeats the channel's last value, `..` / `...` = nothing, `===` = note off.
+Effects are Impulse Tracker letters (`A06` = speed 6, `T96` = tempo 0x96, `D07` = volume slide). Change notes,
+add rows or patterns, reorder. For working in a tracker program (OpenMPT, `.it` files), the
+[webfootaudioengine](https://github.com/ghxstboyy/webfootaudioengine) tool converts LoG1 songs to and from `.it`
+directly in a ROM: run it on your finished `log1_modern.gba` as the last step.
+
+## 13. Movies (`assets/movies/`)
+The three intro movies (movie 2 plays at boot) are standard `.fli` animations (120x80) plus one PNG per frame in
+`movieN/`. Edit the frames (indexed colour, 120x80; each frame keeps its own palette; you can add or delete frames,
+numbered without gaps), or replace `movieN.fli` with any 120x80 8-bit FLI/FLC file made elsewhere.
+
+
+
+## 14. Testing and sharing
 * Play `log1_modern.gba` in mGBA.
 * `make verify-mods` runs the toolkit self-test; `python3 tools/assets/demo_edits.py` (on a fresh extract) shows a text, a graphics,
-  a palette, a map, a table, an area, a conversation, a quest, a sprite and a sound edit.
+  a palette, a map, a table, an area, a conversation, a quest, a sprite, a sound, a music and a movie edit.
 * `make patch` -> `log1_modern.bps`. Players apply it to their own ROM with any BPS patcher or
   `python3 tools/bps.py apply original.gba log1_modern.bps out.gba`.
 
-## 14. Limits
-* Music notes (the pattern format) and the intro movies can't be edited yet. A few quest fields (`bN`) aren't
-  understood yet (see `docs/progress.md`). New areas
+## 15. Limits
+* A few quest fields (`bN`), the 17 enemy AI values and one per-area byte table aren't understood yet (see `docs/progress.md`). New areas
   can't be added (existing ones can be redrawn and rewired).
 * Graphics, palettes, maps and tables keep their size.

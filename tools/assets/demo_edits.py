@@ -16,14 +16,16 @@
   9. sprites: Goku's sprite sheet gets two colours swapped (orange gi <-> blue undershirt indexes 6 and 13)
   10. sound: sample 9 (used by the title music) is replaced by a longer 440 Hz tone (it moves to the end of the data)
   11. music: the title song (song 15) is transposed up 5 semitones
-`demo_edits.py dialogue` / `story` / `sprites` / `sound` / `music` apply only 7 / 8 / 9 / 10 / 11;
+`demo_edits.py dialogue` / `story` / `sprites` / `sound` / `music` / `movie` apply only 7 / 8 / 9 / 10 / 11 / 12;
+  12. movies: the first 60 frames of movie 2 (played at boot) get a white box in the middle
+`demo_edits.py movie_same` only re-saves movie 2's frames unchanged (forces a re-encode; it must look the same);
 `demo_edits.py music_same` only appends an unused copy of a pattern to song 15 (the song moves; it must sound the same) (the other edits change where Goku walks on the test routes)."""
 import os
 import numpy as np
 from PIL import Image
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 import sys
-ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue` / `story` / `sprites` / `sound` / `music` / `music_same`
+ONLY = sys.argv[1] if len(sys.argv) > 1 else None      # `dialogue` / `story` / `sprites` / `sound` / `music` / `music_same` / `movie` / `movie_same`
 if ONLY is None:
     p = 'assets/text/strings.txt'; s = open(p, encoding='utf-8').read()
     old = 'gUnknown_085C2E1A\tOur story begins with our humble hero, Goku.'
@@ -98,4 +100,14 @@ if ONLY in (None, 'music', 'music_same'):
             return '%s%d' % (names[v % 12], v // 12)
         s = re.sub(r'(?<= )([A-G][-#])(\d)(?= )', up, s)
     open(p, 'w').write(s)
+if ONLY in (None, 'movie', 'movie_same'):
+    import glob
+    from PIL import PngImagePlugin
+    for k, f in enumerate(sorted(glob.glob('assets/movies/movie2/frame*.png'))):
+        im = Image.open(f); pal = im.getpalette(); a = np.array(im)
+        if ONLY != 'movie_same' and k < 60:
+            white = max(range(256), key=lambda i: sum(pal[3 * i:3 * i + 3]))
+            a[30:50, 40:80] = white
+        o = Image.fromarray(a, 'P'); o.putpalette(pal)
+        info = PngImagePlugin.PngInfo(); info.add_text('Comment', 'edited'); o.save(f, pnginfo=info)
 print('demo edits applied; now run: make modern')

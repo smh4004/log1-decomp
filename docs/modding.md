@@ -15,6 +15,8 @@ make verify-mods      # self-test
 | The story: 75 quests, their tasks and their results | `assets/story/quests.json` | `tools/assets/quests.py` |
 | Character sprite sheets (84 characters, 19 rows x 4 directions) | `assets/sprites/NAME.png` | `tools/assets/sprites.py` |
 | Instrument and sound samples (20) | `assets/sound/sampleNN.wav`, `samples.json` | `tools/assets/sound.py` |
+| Music: 18 songs as tracker text (tempo, order, patterns, notes, effects) | `assets/music/songNN.txt` | `tools/assets/music.py` |
+| The 3 intro movies (FLI files and PNG frames) | `assets/movies/movieN.fli`, `movieN/frameNNN.png` | `tools/assets/movies.py` |
 | All other text the game points to: story, menus, names | `assets/text/strings.txt` | `tools/assets/assets.py` |
 | Graphics and other packed data (182 BIOS-compressed blocks), drawn in their real colours | `assets/gfx/blocks/LABEL.bin` + `LABEL.png` | `tools/assets/assets.py`, `bios.py`, `gfxinfo.py` |
 | Palettes (every one those images and the areas use) | `assets/palettes/LABEL.pal` | `assets.py` |
@@ -66,8 +68,33 @@ animation frames in the game's order (standing, walking, ... per character); not
 `gSampleTable` (0x08591E4C) has 20 records {-> 8-bit signed PCM, loop flag, loop start, length, rate in Hz}. They are
 exported as WAV and imported from any 8/16-bit mono or stereo WAV; the rate comes from the file, a longer sample is
 moved to the appendix and its pointer follows. `make verify-mods` replaces a sample the title music uses with a longer
-tone and checks that the music player points into the new data. The 18 music tracks that follow (`gTrackTable`
-0x08591F3C: pattern list, order list, tempo) use a custom pattern format that is not decoded yet.
+tone and checks that the music player points into the new data. The 18 music tracks follow (next section).
+
+## Music
+`gTrackTable` (0x08591F3C) has 18 songs `{-> pattern pointer list, -> order list, tempo | speed << 8}`; the order
+list, the patterns and the pointer list lie in that order. Patterns are Webfoot's packed tracker rows: per row,
+tokens `channel+1 | mask kind << 4` (kind 0 = new mask byte, 1 = the channel's last mask, 2-15 = a 14-byte global mask
+dictionary at 0x08142388), then the note / sample / volume / effect bytes the mask asks for; mask bits 0x10-0x80 replay
+the channel's previous value. Effects use Impulse Tracker numbering. The layout and row encoding were worked out with
+help from [webfootaudioengine](https://github.com/ghxstboyy/webfootaudioengine) (it converts Webfoot songs to and from
+`.it` modules); `music.py` is a separate implementation. All 282 patterns decode and re-encode to the original bytes.
+`songNN.txt` lists each row's channel cells (`CHANNEL NOTE SAMPLE VOLUME EFFECT`, `=` = repeat). A changed song is
+re-encoded and moved to the appendix (its descriptor's pointers follow). `make verify-mods` records the mixer buffer
+(0x0203F800) at the title: the title song re-encoded and moved gives identical audio for 60 buffers, transposed it
+doesn't.
+
+For `.it` work (OpenMPT), webfootaudioengine reads and writes LoG1 songs directly in a ROM; use it on a built
+`log1_modern.gba` as the last step (its changes are not in this source tree).
+
+## Movies
+The three movies (0x081CA168, 0x08337248 = the one at boot, 0x084E4F44) are standard Autodesk FLI animations, 120x80,
+8 bpp, played by `sub_080045F8` (chunks 4, 7, 11, 12, 13, 15, 16; the 0xF100 prefix chunk is skipped). They are exported
+as `.fli` (any FLI player or converter, e.g. ffmpeg, reads them) and as PNG frames. A replaced `.fli` is used as is;
+changed frames are re-encoded (256-colour palette chunk on change, then line delta or byte run). A movie that grows is
+added at the end and only the pointer to it changes (bytes inside the old movie that other data happens to point at stay
+put). `make verify-mods` re-encodes the boot movie from its frames (it decodes to the same frames, and the boot looks
+the same; a few sampled screens can be a VBlank early or late because decode time depends on the encoding) and checks
+that edited frames show.
 
 These two tables showed a gap in relocation: four sample pointers were plain numbers. `config/game.json` can now list
 known pointer tables (`ptr_tables`: start, count, stride, field); the sample/track table is listed there (9,436
@@ -140,6 +167,6 @@ turns changed files into overrides, `tools/assets/apply.py` splices them into a 
 build links `log1_modern.gba`. This works because every pointer in the data is a symbol (`docs/shifting.md`).
 
 ## Not covered yet
-The area `+0x18` byte table, what the 17 enemy AI values do, the music pattern format,  (speaker/next fields), sprite sheets, music and the
+The area `+0x18` byte table, what the 17 enemy AI values do,  (speaker/next fields), sprite sheets, music and the
 movie codec. The data is all reachable
 from the disassembly (`data/*.s`), and the code that reads it is in `ref/` and `src/`.

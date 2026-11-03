@@ -23,6 +23,7 @@ Asset kinds (all pulled from the user's baserom.gba; nothing copyrighted is comm
   sprites   assets/sprites/NAME.png       character sprite sheets, 19 rows x 4 directions (sprites.py)
   sound     assets/sound/sampleNN.wav     the 20 instrument / sound samples, any length and rate (sound.py)
   music     assets/music/songNN.txt       the 18 songs as tracker text: tempo, order, patterns, notes (music.py)
+  movies    assets/movies/movieN.fli      the 3 intro movies as FLI files and PNG frames (movies.py)
 Overrides are applied to the generated data/*.s by tools/assets/apply.py (make modern).
 """
 import sys, os, json, struct, hashlib, re
@@ -39,6 +40,7 @@ import quests as QST
 import sprites as SPR
 import sound as SND
 import music as MUS
+import movies as MOV
 from const import ROM, RODATA
 
 
@@ -155,6 +157,7 @@ def extract(rom, out):
     SPR.extract(d, out, reg, AR.sprites(d))
     SND.extract(d, out, reg)
     MUS.extract(d, out, reg)
+    MOV.extract(d, out, reg)
     json.dump(man, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
     print('extracted %d assets to %s' % (len(man['assets']), out))
 
@@ -185,8 +188,9 @@ def build(rom, src, out):
     ctx = dict(put=put, put_s=put_s, new=new, new_s=new_s)
     for name, a in man['assets'].items():
         path = os.path.join(src, a['file'])
-        if sha(path) == a['sha1']: continue
-        changed.append(name); k = a['kind']
+        if sha(path) == a['sha1'] and a['kind'] != 'movie': continue          # movie: its frame PNGs are checked by movies.py
+        k = a['kind']
+        if k != 'movie': changed.append(name)
         if k == 'text':
             lines = {}
             for l in open(path, encoding='utf-8'):
@@ -232,6 +236,9 @@ def build(rom, src, out):
             SND.build(d, a, path, ctx, src)
         elif k == 'music':
             MUS.build(d, a, path, ctx)
+        elif k == 'movie':
+            n0 = len(ov); MOV.build(d, a, path, ctx, src)
+            if len(ov) > n0: changed.append(name)
     json.dump(ov, open(os.path.join(out, 'overrides.json'), 'w'), indent=1)
     print('changed assets: %s' % (', '.join(changed) or 'none'))
     print('%d overrides -> %s' % (len(ov), os.path.join(out, 'overrides.json')))
