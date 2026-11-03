@@ -1,5 +1,5 @@
 /* sub_0800B716  (original: 0x0800B716-0x0800B758 in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 12/12 snapshots, 50% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_0800B436();

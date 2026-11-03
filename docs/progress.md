@@ -6,7 +6,7 @@
 | Byte map | done: `config/regions.yaml` |
 | Relocatable source | done: shift test 37/37 (`docs/shifting.md`) |
 | Ghidra reference C | done: all 865 functions (`ref/`) |
-| C replacing assembly | 488 of 490 replaceable functions have C that compiles (23 hand-written). 166 verified + 102 tested (snapshot-equivalent in all 41 areas, whole-game checked); 174 untested; 46 failing or blocklisted. `make decomp` / `make DECOMP=2` |
+| C replacing assembly | 488 of 490 replaceable functions have C that compiles (23 hand-written). 171 verified + 112 tested (snapshot-equivalent in all 41 areas and from a late-game save, whole-game checked); 158 untested; 47 failing or blocklisted. `make decomp` / `make DECOMP=2` |
 | Text | done: every pointed-to string; conversations as their own files |
 | Conversations | done: 80 sets / 988 lines (speaker, next, text), lines can be added; checked in game |
 | Story | done: 75 quests, 27 task/action types, every field named; add/remove/edit; checked in game |

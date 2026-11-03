@@ -29,10 +29,10 @@ baserom.gba ──make──▶ log1.elf (matching, symbols)
 ## Tiers (current numbers)
 | File | Count | Meaning | Built by |
 |---|---:|---|---|
-| `config/decomp_verified.txt` | 166 | Equivalent to the original on every captured snapshot (up to 30 per function, from the Kame House routes and all 41 areas, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, cleared by the per-function whole-game bisect, **and** with all 166 linked, no difference from the original on any checkpoint a pure timing change leaves intact (`wholegame.py`; see "Timing") | `make decomp` (= `DECOMP=1`) |
-| `config/decomp_tested.txt` | 102 | The same, including both whole-game checks (run with verified + tested linked), but less than 90% of the function was exercised | `make DECOMP=2` |
-| `config/decomp_untested.txt` | 174 | Compiles and links, but no snapshot exercised it (157 never reached, 17 only inconclusively: they never return, like `AgbMain`, or hit an unemulated BIOS call). **Unverified**: read it as Ghidra's best guess | `make DECOMP=3` (experimental) |
-| `config/decomp_failing.txt` | 46 | 23 differ from the original on at least one snapshot; 23 are blocklisted | never linked; the header comment says why |
+| `config/decomp_verified.txt` | 171 | Equivalent to the original on every captured snapshot (up to 30 per function, from the Kame House routes and all 41 areas, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, cleared by the per-function whole-game bisect, **and** with all of them linked, no difference from the original on any checkpoint a pure timing change leaves intact (`wholegame.py`; see "Timing") | `make decomp` (= `DECOMP=1`) |
+| `config/decomp_tested.txt` | 112 | The same, including both whole-game checks (run with verified + tested linked), but less than 90% of the function was exercised | `make DECOMP=2` |
+| `config/decomp_untested.txt` | 158 | Compiles and links, but no snapshot exercised it (140 never reached, 18 only inconclusively: they never return, like `AgbMain`, or hit an unemulated BIOS call). **Unverified**: read it as Ghidra's best guess | `make DECOMP=3` (experimental) |
+| `config/decomp_failing.txt` | 47 | 24 differ from the original on at least one snapshot; 23 are blocklisted | never linked; the header comment says why |
 | `config/decomp_blocklist.txt` | 26 | 22 functions that passed the snapshots but changed the game in the whole-game check, 3 that can't be expressed in C or would erase data (see "What can't be replaced"), and the harness's frame-sync function `WaitForVBlank` | |
 | `config/replaceable.txt` | 490 | Functions the build can swap out. 488 have C that compiles (23 of them hand-written, `tools/decomp/manual/`); the other 2 have no C equivalent | |
 
@@ -119,8 +119,10 @@ Kame House. `tools/harness/capture_variants.py` reaches the rest of the game: fo
 *capture-only* ROM in which one data record changes (Kame House's exit warp is widened to the whole island and
 pointed at that area's start; no code changes), plays the intro, walks into the warp and explores the area at random.
 `STRONG=1` makes a second set with a strong level-1 Goku (its row in the level table), so fights are won rather than
-lost. Together the routes reach 332 of the 490 replaceable functions (56,151 snapshots, up to 3 per function
-per route). `.analysis/snaps/roms.json` records which ROM each route's snapshots came from, and the tester runs them
+lost. `SAVE=path.sav` plays from a save file instead (Continue, slot 1, then random input), which reaches what a new
+game never gets to: a save from the Frieza fight with Goku at the maximum level added 17 functions. Save files come
+from your own game and aren't part of the repo. Together the routes reach 349 of the 490 replaceable functions
+(about 58,600 snapshots, up to 3 per function per route). `.analysis/snaps/roms.json` records which ROM each route's snapshots came from, and the tester runs them
 against that ROM's data. Per function, the tester uses at most 30 snapshots (`MAXSNAP`), taken round-robin across
 routes. Snapshots are made from your ROM's
 memory, so they live in `.analysis/snaps` and are never committed.
@@ -260,7 +262,7 @@ table that `sub_0800E4B0` walks at startup, which replacing it would erase.
 5. To promote a function to a better tier, more snapshots must reach it. Add a route that exercises it and capture with `harness ... capture`.
 
 ## Honest limits
-* **Untested ≠ wrong, but also ≠ right.** 174 replaceable functions (36%) have no conclusive snapshot: story events
+* **Untested ≠ wrong, but also ≠ right.** 158 replaceable functions (32%) have no conclusive snapshot: story events
   that depend on quest progress, the save chip, the ending, error paths. Their C is Ghidra's reading of the machine code
   (with the argument counts checked against it), with no execution evidence behind it.
 * **The whole-game check is limited by timing.** The game itself plays differently once its speed changes (see

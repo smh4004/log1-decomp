@@ -1,5 +1,5 @@
 /* sub_0800B692  (original: 0x0800B692-0x0800B6D6 in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
  */
 #include "ghidra_types.h"
 extern int sub_080087A0();

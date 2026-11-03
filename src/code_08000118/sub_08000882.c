@@ -1,5 +1,5 @@
 /* sub_08000882  (original: 0x08000882-0x080008B4 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; snapshots inconclusive (BIOS call or fault before return).
  */
 #include "ghidra_types.h"
 extern int sub_08002F80();
