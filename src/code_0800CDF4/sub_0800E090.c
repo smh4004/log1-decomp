@@ -1,5 +1,5 @@
 /* sub_0800E090  (original: 0x0800E090-0x0800E0D4 in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 5/5 snapshots, 52% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 52% of instructions covered.
  */
 #include "ghidra_types.h"
 extern undefined * volatile DAT_03004810;

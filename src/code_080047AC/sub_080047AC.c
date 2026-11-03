@@ -3,11 +3,11 @@
  */
 #include "ghidra_types.h"
 extern int sub_080098F8();
-extern undefined2 volatile DAT_04000020;
-extern undefined2 volatile DAT_04000022;
+extern ushort volatile DAT_04000020;
+extern ushort volatile DAT_04000022;
 extern ushort volatile DAT_03000828;
-extern undefined2 volatile DAT_04000024;
-extern undefined2 volatile DAT_04000026;
+extern ushort volatile DAT_04000024;
+extern ushort volatile DAT_04000026;
 extern ushort volatile DAT_0300082a;
 extern undefined4 volatile DAT_04000028;
 extern undefined1 volatile DAT_00004000;
@@ -15,7 +15,7 @@ extern undefined1 volatile DAT_00004001;
 extern undefined4 * volatile DAT_0300000b;
 extern undefined4 volatile DAT_03000104;
 extern undefined4 volatile DAT_0400002c;
-extern undefined2 volatile REG_BLDCNT;
+extern ushort volatile REG_BLDCNT;
 extern undefined2 volatile REG_DISPCNT;
 
 

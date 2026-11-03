@@ -1,5 +1,5 @@
 /* sub_0800BE64  (original: 0x0800BE64-0x0800BEA8 in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 28% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_0800BE32();
@@ -14,7 +14,7 @@ void sub_0800BE64(int param_1)
 {
   uint uVar1;
   
-  sub_0800BE32();
+  sub_0800BE32(param_1);
   uVar1 = *(int *)(param_1 + 0x28) - 1;
   *(uint *)(param_1 + 0x28) = uVar1;
   if ((uVar1 & 0xf) == 0) {

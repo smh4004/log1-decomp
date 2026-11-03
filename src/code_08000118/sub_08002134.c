@@ -1,9 +1,9 @@
 /* sub_08002134  (original: 0x08002134-0x080022A4 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 63% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; NOT equivalent: equal, mem@03000000, r0.
  */
 #include "ghidra_types.h"
 extern int sub_0800F36C();
-extern undefined2 volatile DAT_03000608;
+extern undefined4 volatile DAT_03000608;
 extern short volatile DAT_0300060a;
 extern short volatile DAT_030005f8;
 extern short volatile DAT_030005fa;
@@ -13,7 +13,7 @@ extern short volatile DAT_0300060e;
 
 /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
 
-bool sub_08002134(undefined4 param_1)
+bool sub_08002134(short *param_1)
 
 {
   undefined4 uVar1;

@@ -4,9 +4,9 @@
 #include "ghidra_types.h"
 extern int sub_08002300();
 extern int sub_08002E42();
-extern int sub_0800245A();
 extern int sub_0800507A();
-extern undefined4 volatile DAT_03000600;
+extern int sub_0800245A();
+extern int volatile DAT_03000600;
 extern undefined * volatile gUnknown_08011E00;
 
 
@@ -23,8 +23,8 @@ void sub_0800D11C(int param_1)
 #define sStack_c (*(short *)((char *)__frame + 0xc))
 #define sStack_a (*(short *)((char *)__frame + 0xe))
   if (*(int *)(param_1 + 0x24) == 0) {
-    sub_08002E42(&local_18);
-    sub_08002300(&sStack_10,param_1);
+    sub_08002E42((undefined4 *)&local_18);
+    sub_08002300((undefined4 *)&sStack_10,param_1);
     if ((((local_18 < sStack_c) && (sStack_10 < sStack_14)) && (sStack_16 < sStack_a)) &&
        (sStack_e < sStack_12)) {
       *(undefined4 *)(param_1 + 0x24) = 900;
@@ -32,7 +32,7 @@ void sub_0800D11C(int param_1)
     else {
       sub_0800245A(param_1,&gUnknown_08011E00);
       *(undefined4 *)(param_1 + 0x38) = 0x800d03d;
-      sub_08002300(&sStack_10,param_1);
+      sub_08002300((undefined4 *)&sStack_10,param_1);
       sub_0800507A(DAT_03000600,&sStack_10,0,0);
     }
   }

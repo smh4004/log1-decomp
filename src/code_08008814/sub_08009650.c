@@ -2,7 +2,7 @@
  * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
  */
 #include "ghidra_types.h"
-extern undefined2 volatile DAT_030047e8;
+extern ushort volatile DAT_030047e8;
 
 
 void sub_08009650(undefined4 *param_1,int param_2,undefined2 param_3,uint param_4)

@@ -1,5 +1,5 @@
 /* sub_0800A664  (original: 0x0800A664-0x0800A6B2 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 84% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern int sub_0800DBF8();
@@ -7,7 +7,7 @@ extern ushort volatile DAT_03003d12;
 extern ushort volatile DAT_03003d14;
 extern ushort volatile DAT_03003d16;
 extern byte volatile DAT_03003d10;
-extern undefined2 volatile REG_KEYINPUT;
+extern ushort volatile REG_KEYINPUT;
 extern int volatile DAT_03003d18;
 extern undefined volatile DAT_03003d1c;
 

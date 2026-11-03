@@ -29,12 +29,12 @@ baserom.gba ──make──▶ log1.elf (matching, symbols)
 ## Tiers (current numbers)
 | File | Count | Meaning | Built by |
 |---|---:|---|---|
-| `config/decomp_verified.txt` | 58 | Equivalent to the original on every captured snapshot (up to 15 per function, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, **and** the whole game plays `decomp_route.txt` and `decomp_long.txt` identically (59 checkpoints), and `decomp_explore.txt` (14 checkpoints) with all of them linked. | `make decomp` (= `DECOMP=1`) |
-| `config/decomp_tested.txt` | 47 | The same, but less than 90% of the function was exercised. **Not whole-game clean yet**: the `DECOMP=2` ROM diverges during the opening story text | `make DECOMP=2` (experimental) |
-| `config/decomp_untested.txt` | 190 | Compiles and links, but no capture route ever called it. **Unverified**: read it as Ghidra's best guess. The ROM with these linked does **not** play correctly | `make DECOMP=3` (experimental) |
-| `config/decomp_failing.txt` | 59 | Compiled, but differed from the original on at least one snapshot, or is blocklisted | never linked; the header comment says why |
-| `config/decomp_blocklist.txt` | 8 | Passed the snapshots but changed the game (found by `gamebisect.py`), plus the harness's frame-sync function `WaitForVBlank` | |
-| `config/replaceable.txt` | 490 | Functions the build can swap out (see "What can't be replaced"). Of these, 63 were rejected before testing (Ghidra output with unrecovered registers, jump tables or ROM-absolute data) | |
+| `config/decomp_verified.txt` | 166 | Equivalent to the original on every captured snapshot (up to 30 per function, from the Kame House routes and all 41 areas, plus a run with noise on the free stack), ≥90% of its instructions executed during the tests, cleared by the per-function whole-game bisect, **and** with all 166 linked, no difference from the original on any checkpoint a pure timing change leaves intact (`wholegame.py`; see "Timing") | `make decomp` (= `DECOMP=1`) |
+| `config/decomp_tested.txt` | 102 | The same, including both whole-game checks (run with verified + tested linked), but less than 90% of the function was exercised | `make DECOMP=2` |
+| `config/decomp_untested.txt` | 174 | Compiles and links, but no snapshot exercised it (157 never reached, 17 only inconclusively: they never return, like `AgbMain`, or hit an unemulated BIOS call). **Unverified**: read it as Ghidra's best guess | `make DECOMP=3` (experimental) |
+| `config/decomp_failing.txt` | 46 | 23 differ from the original on at least one snapshot; 23 are blocklisted | never linked; the header comment says why |
+| `config/decomp_blocklist.txt` | 26 | 22 functions that passed the snapshots but changed the game in the whole-game check, 3 that can't be expressed in C or would erase data (see "What can't be replaced"), and the harness's frame-sync function `WaitForVBlank` | |
+| `config/replaceable.txt` | 490 | Functions the build can swap out. 488 have C that compiles (23 of them hand-written, `tools/decomp/manual/`); the other 2 have no C equivalent | |
 
 Every `src/*.c` file starts with a header comment that gives the original address range, its tier, and how many snapshots it passed.
 
@@ -61,6 +61,20 @@ tools/ghidra/export.sh $GHIDRA ~/gproj bf                   # -> .analysis/ghidr
     recomputes function bodies.
   * `tools/ghidra/veneer_sigs.py` counts how many argument registers each veneer target reads (`memset(dst, val, len)`
     has 3). Without a fixed signature, Ghidra guessed a different argument list at every call site and dropped arguments.
+* `ApplyArgCounts.java` (third run, after `tools/ghidra/arg_counts.py`) fixes parameter lists. Ghidra infers a function's
+  parameters while decompiling it but doesn't store them, so each caller was decompiled with its own guess, and arguments
+  went missing (the text printer called `sub_08008DBE(obj)` instead of `sub_08008DBE(obj, ch)`; the area loader's camera
+  code read a 2-byte value as one byte). `arg_counts.py` counts, for every function, which of r0-r3 the machine code
+  reads before writing them: following branches and calls through the call graph, counting arguments spilled with
+  `push {r0, r1, lr}` and read back from the stack, and following Thumb `bx pc` stubs into their ARM bodies (the
+  divide routines). Variadic functions (`push {r0-r3}`) count only their named arguments. The script commits Ghidra's
+  parameters for every function and sets each list to the machine-code count (widened, or trimmed where Ghidra assumed
+  a call through a register passes r1-r3 along; never below a function with stack arguments).
+  ```sh
+  python3 tools/ghidra/arg_counts.py
+  $GHIDRA/support/analyzeHeadless ~/gproj log1 -process -noanalysis -scriptPath tools/ghidra \
+      -postScript ApplyArgCounts.java $PWD/.analysis/ghidra/arg_counts.txt
+  ```
 * `ExportFunctions.java` writes one JSON line per function:
   `{name, addr, c, sig, globals:[[name,type,addr,size]], callees:[[name,proto,addr]]}`. `ExportDecomp.java` writes the
   reference C, one file per `asm/code_*.s`.
@@ -69,6 +83,18 @@ tools/ghidra/export.sh $GHIDRA ~/gproj bf                   # -> .analysis/ghidr
 For each replaceable function, the Ghidra C is wrapped with `include/ghidra_types.h` (Ghidra's `undefined4`, `CONCAT`,
 `SUB`, `CARRY4`... spelled as C macros) plus `extern` declarations for its callees and globals. Every global gets an
 absolute address in a per-function linker script, so `DAT_03001c34` is a real symbol at 0x03001C34.
+Ghidra notations that aren't C are translated: `x._2_2_` (2 bytes at offset 2 of x) becomes a pointer access;
+raw addresses Ghidra never exported as globals (`Ram040000dc`, `_DAT_030005f0`, `sRam0300086e`) become absolute
+accesses, sized by Ghidra's prefix or, when it has none, by the instruction that accesses them (`ldrh`, `ldrsb`...;
+the same is done for globals Ghidra left untyped, which it otherwise declares as one byte); ROM data is referred to
+through the label that contains it (`gUnknown_080116C0 + 0x4`), not a number; a callee whose result Ghidra keeps
+in an `undefined8` (quotient and remainder of `__rt_sdiv` in r0:r1) is declared as returning 64 bits.
+
+**Hand-written C** in `tools/decomp/manual/NAME.c` replaces Ghidra's text for 23 functions it can't express: BIOS
+calls (`Decompress`, `Div`, `SoftReset`, semihosting), the variadic text formatter, a divide's remainder used from r1,
+and GCC-compiled library code whose `pop {r1}; bx r1` returns Ghidra took for jump tables. See
+`tools/decomp/manual/README.md`. They go through the same compile and tests as everything else.
+
 A function is **rejected** if Ghidra's output contains:
 * `unaff_*`, `in_r*`, `extraout_*`: Ghidra couldn't work out the calling convention (callee-saved registers used as inputs, or results in odd registers).
 * `halt_baddata`, `UNRECOVERED_JUMPTABLE`, `switchD_*`, `software_interrupt`, `coprocessor`: things it couldn't express in C.
@@ -88,7 +114,15 @@ the test would end up comparing the original with itself. (This bug happened onc
 The headless mGBA harness plays scripted input routes (`tools/harness/*.txt`). `capture LIST DIR N` stops whenever the next instruction is the entry of a
 listed function and saves the registers (r0–r15, CPSR) and all of RAM, IO, palette, VRAM and OAM, up to N times per function.
 Snapshot format: 18 u32 registers, then per region `base, size, zlen` and zlib data.
-The capture routes (`smoke`, `long`, `explore1-3`, generated by `tools/harness/make_explore.py`) reached 260 distinct functions (2,868 snapshots, up to 3 per function per route). Snapshots are made from your ROM's
+The capture routes `smoke`, `long` and `explore1-3` (generated by `tools/harness/make_explore.py`) only play around
+Kame House. `tools/harness/capture_variants.py` reaches the rest of the game: for each of the other 41 areas it makes a
+*capture-only* ROM in which one data record changes (Kame House's exit warp is widened to the whole island and
+pointed at that area's start; no code changes), plays the intro, walks into the warp and explores the area at random.
+`STRONG=1` makes a second set with a strong level-1 Goku (its row in the level table), so fights are won rather than
+lost. Together the routes reach 332 of the 490 replaceable functions (56,151 snapshots, up to 3 per function
+per route). `.analysis/snaps/roms.json` records which ROM each route's snapshots came from, and the tester runs them
+against that ROM's data. Per function, the tester uses at most 30 snapshots (`MAXSNAP`), taken round-robin across
+routes. Snapshots are made from your ROM's
 memory, so they live in `.analysis/snaps` and are never committed.
 
 > mGBA detail: while stepping, `gprs[15]` is one Thumb instruction ahead, so the next instruction is at `pc - 2`.
@@ -102,16 +136,24 @@ For each snapshot, run the **original** code from the ROM and then the **candida
   rewrites the C to `return param_1;` and the function is tested again. A difference in r0 is tolerated only for functions that
   `tools/decomp/r0live.py` proves nobody reads r0 from (every direct caller overwrites r0 before reading it, the address
   is never taken, and it's never tail-called),
+  `r0live.py` follows a value that a caller returns unchanged up to that caller's callers. A weaker rule accepts the
+  rest (`equal-r0unread`): no *direct* caller reads r0, **and** the caller this snapshot returns to (its LR) doesn't
+  either. Calls through pointers that no snapshot saw aren't covered by it. `autodecomp.py fixvoid` first tries to
+  reproduce such a value (the last callee's result, or the first argument),
 * r4–r11 and SP (callee-saved, so they must be restored),
 * every byte of EWRAM, IWRAM, IO, palette, VRAM and OAM, **except** the stack below the entry SP (scratch space that differs because GCC lays out frames differently).
 
 Calls out of the function run the original code in both runs, so a candidate is judged only on its own behaviour.
-BIOS calls (`swi`) and faults make the snapshot **inconclusive**. A function is **accepted** only if no snapshot differs and at least one is equal.
+BIOS calls are emulated at a high level, the same way in both runs: the decompressors (LZ77, Huffman, run-length,
+Diff8/16) with the decoders from `tools/bfdis/lz.py`, `Div`, and the `Halt` in `WaitForVBlank`, modelled as the VBlank
+interrupt having set the flag it waits for (so a function that waits a few frames runs to completion). Other BIOS
+calls and faults make the snapshot **inconclusive**. A function is **accepted** only if no snapshot differs and at least one is equal.
 The tester also records **coverage**: the fraction of the original's instructions executed across all its snapshots.
 
 ### 6. Is the tester actually strict? (`tools/decomp/mutation_check.py`)
 Take accepted, fully covered functions, inject one mutation into the C (`+ 1` -> `+ 2`, `<` -> `<=`, `= 0;` -> `= 3;`, ...) and test
-again. Latest run: **19 of 25 mutants caught**. The 6 survivors:
+again. Latest run (with the snapshots from all 41 areas): **17 of 25 mutants caught**. When the survivors of an earlier
+run (19 of 25) were examined one by one, they were of two kinds:
 * mutated a value that's dead (a return value no caller reads, or a register write overwritten later in the function, as in `REG_DISPCNT = 0` followed by `= 0x200`), so the mutant really is equivalent;
 * or changed a branch condition at a boundary no snapshot hits (`<` -> `<=`).
 The second kind is the real gap. More capture routes close it, and the whole-game check (step 7) catches what it can.
@@ -144,6 +186,30 @@ What the whole-game check caught, and what was changed in the pipeline because o
 | Text formatter lost arguments | Variadic functions (`push {r0-r3}` prologue) walk the caller's stack; Ghidra copies only the named registers | variadic functions are not replaced |
 | A sound sequencer never saw its end marker | Ghidra writes `*(char *)p == -1`, so it assumes signed `char`, but GCC's ARM `char` is unsigned | `-fsigned-char` |
 | Everything after the C code moved | C code was originally linked before .rodata, and replaced functions were padded only to alignment | C goes after all original data; full-size padding |
+
+### Timing: what the whole-game check can and can't judge
+`syncpc` keeps the routes' inputs in step with the game loop, but not everything follows the game loop. The interrupt
+handler runs once per video frame (sound, fades, and state the game logic reads), so when a loop pass runs over a
+frame, that state drifts, and from some point on the game takes a different turn. This happens to the original
+code too. Control experiment: `sub_0800EC80` replaced by **an exact copy of its own instructions**, linked like
+the C (long jump, body in `.decomp`). That ROM's only difference is a few cycles at boot, yet `decomp_explore.txt`
+differs from checkpoint 9 on. With all verified functions linked, the C runs slower and drifts much earlier: the
+timing control for that set (`tools/decomp/timing_control.py`: every listed function replaced by a relocated copy
+of its original instructions) already differs from the original on 205 of 492 area checkpoints, exactly as many
+as the C build.
+
+So the whole-game check compares the C with the original only where a pure timing change of the same size leaves the
+game unchanged:
+* **Per function** (`gamebisect.py` with `HORIZON=build/horizon.json`): builds with small subsets barely change the
+  timing. `tools/decomp/timing_horizon.py` measures each route's horizon with two one-function controls
+  (`tools/decomp/timing/`): 22 of 22 checkpoints on `decomp_route`, 36 of 37 on `decomp_long`, 9 of 14 on
+  `decomp_explore`, and all 492 in the 41 areas (`decomp_warp.txt`, played with `WARPS=1,...,41`: the same one-record
+  warp patch as the capture ROMs, applied to both ROMs). The bisect then finds the functions whose build differs before
+  the horizon. They're blocklisted, conservatively: a C function much slower than the original could cross the horizon
+  through timing alone.
+* **The whole tier together** (`tools/decomp/wholegame.py LIST`): the C build, its timing control and the original
+  play every route, and the C is compared with the original up to the first checkpoint where the control differs, in
+  each run.
 
 ## How C replaces assembly in the build
 Each replaceable function in `asm/code_*.s` is wrapped like this:
@@ -178,6 +244,11 @@ A function stays assembly-only (and isn't in `replaceable.txt`) when:
 * **Another function jumps into its middle**: an inner label is referenced from outside, as with shared epilogues and ADS tail merges.
 * **It's ARM code, a veneer, a C++ MI thunk, or part of the runtime library** (`__rt_sdiv`, `__call_via_rN`, ...).
 
+Three replaceable functions stay assembly for structural reasons (`config/decomp_blocklist.txt`): `sub_08000520` is
+entered by a branch from inside another function and returns through that function's stack frame; `sub_0800E8A0`'s body
+continues in code that uses its frame; and `sub_0800EE44`'s range in the disassembly also holds the static-constructor
+table that `sub_0800E4B0` walks at startup, which replacing it would erase.
+
 ## How to work on a function
 1. Find it: `grep -rl sub_08009744 src/ asm/`, or by address in `.analysis/ghidra/c/index.tsv`.
 2. Edit `src/<file>/<func>.c`: rename variables, add structs. Names go in `config/symbols.txt` (then rerun `gen.py`) so
@@ -189,9 +260,14 @@ A function stays assembly-only (and isn't in `replaceable.txt`) when:
 5. To promote a function to a better tier, more snapshots must reach it. Add a route that exercises it and capture with `harness ... capture`.
 
 ## Honest limits
-* **Untested ≠ wrong, but also ≠ right.** About 70% of the replaceable functions were never reached by the capture routes
-  (battles, late chapters, shops, save menus need longer routes). Their C is Ghidra's reading of the machine code, with
-  no execution evidence behind it.
+* **Untested ≠ wrong, but also ≠ right.** 174 replaceable functions (36%) have no conclusive snapshot: story events
+  that depend on quest progress, the save chip, the ending, error paths. Their C is Ghidra's reading of the machine code
+  (with the argument counts checked against it), with no execution evidence behind it.
+* **The whole-game check is limited by timing.** The game itself plays differently once its speed changes (see
+  "Timing"), so with a whole tier linked only 174 of 565 checkpoints can judge the C. The per-function bisect, where the
+  timing barely changes, uses nearly all of them.
+* **`equal-r0unread` is weaker than a proof.** It covers the direct callers and the return sites the snapshots saw, not
+  calls through pointers that no route reached.
 * Ghidra output is readable but not idiomatic: `param_1`, `iVar3`, pointer arithmetic instead of structs, C++ `this`
   as a plain `int`. Classes aren't recovered (the vtables are labelled in asm, and their methods are the
   `sub_` functions they point to).

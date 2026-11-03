@@ -10,7 +10,7 @@ void sub_0800BD8E(int param_1)
 {
   int iVar1;
   
-  iVar1 = __16__rt_sdiv(*(undefined4 *)(*(int *)(*(int *)(param_1 + 0x3c) + 0x3c) + 0x58),
+  iVar1 = __16__rt_sdiv(*(uint *)(*(int *)(*(int *)(param_1 + 0x3c) + 0x3c) + 0x58),
                         *(int *)(param_1 + 0x24) * (uint)*(byte *)(param_1 + 0x10));
   *(char *)(param_1 + 0x14) = (char)(iVar1 >> 1);
   if (2 < (iVar1 >> 1 & 0xffU)) {

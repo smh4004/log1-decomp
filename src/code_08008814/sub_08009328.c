@@ -1,18 +1,18 @@
 /* sub_08009328  (original: 0x08009328-0x0800946E in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 39% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 37% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_0800ACFE();
-extern int __call_via_r5();
-extern int sub_08008DBE();
 extern int sub_08008D14();
+extern int sub_08008DBE();
+extern int __call_via_r5();
 extern ushort volatile DAT_03003d14;
-extern undefined1 volatile DAT_03003d10;
+extern byte volatile DAT_03003d10;
 extern byte volatile DAT_03000020;
 extern ushort volatile DAT_03003d12;
 
 
-void sub_08009328(int param_1,int param_2)
+void sub_08009328(byte *param_1,int param_2)
 
 {
   byte bVar1;
@@ -28,7 +28,10 @@ void sub_08009328(int param_1,int param_2)
       if ((*(char **)(param_1 + 0x14) == (char *)0x0) || (**(char **)(param_1 + 0x14) == '\0')) {
         DAT_03003d14 = 0;
         DAT_03003d10 = 0;
-        *(undefined4 *)(param_1 + 0x14) = 0;
+        param_1[0x14] = 0;
+        param_1[0x15] = 0;
+        param_1[0x16] = 0;
+        param_1[0x17] = 0;
       }
       else {
         if (param_2 == 0) {
@@ -37,9 +40,12 @@ void sub_08009328(int param_1,int param_2)
         else {
           __call_via_r5();
         }
-        *(undefined1 *)(param_1 + 0x1c) = 0;
+        param_1[0x1c] = 0;
         *(int *)(param_1 + 0x18) = (int)*(short *)(param_1 + 8) - (int)*(short *)(param_1 + 4);
-        *(undefined4 *)(param_1 + 0x20) = 0;
+        param_1[0x20] = 0;
+        param_1[0x21] = 0;
+        param_1[0x22] = 0;
+        param_1[0x23] = 0;
       }
     }
     return;
@@ -51,41 +57,50 @@ void sub_08009328(int param_1,int param_2)
     iVar4 = aiStack_20[DAT_03000020];
     uVar2 = (uint)DAT_03003d12;
     if ((DAT_03003d12 & 1) != 0) {
-      iVar4 = (int)*(char *)(param_1 + 0x1c);
+      iVar4 = (int)(char)param_1[0x1c];
     }
-    iVar4 = ((uint)*(byte *)(param_1 + 0x1c) - iVar4) * 0x1000000;
-    *(char *)(param_1 + 0x1c) = (char)((uint)iVar4 >> 0x18);
+    iVar4 = ((uint)param_1[0x1c] - iVar4) * 0x1000000;
+    param_1[0x1c] = (byte)((uint)iVar4 >> 0x18);
     if ((iVar4 >> 0x18 < 1) || ((int)(uVar2 << 0x1e) < 0)) {
-      *(undefined1 *)(param_1 + 0x1c) = 0x32;
+      param_1[0x1c] = 0x32;
       pbVar5 = *(byte **)(param_1 + 0x14);
       bVar1 = *pbVar5;
       if (bVar1 == 10) {
         *(undefined2 *)(param_1 + 10) = *(undefined2 *)(param_1 + 2);
         *(short *)(param_1 + 0xc) = *(short *)(param_1 + 0xc) + 1;
-        iVar4 = *(int *)(param_1 + 0x18) + -1;
-        *(int *)(param_1 + 0x18) = iVar4;
-        if (iVar4 == 0) {
-          *(undefined4 *)(param_1 + 0x20) = 1;
+        iVar4 = *(int *)(param_1 + 0x18);
+        *(int *)(param_1 + 0x18) = iVar4 + -1;
+        if (iVar4 + -1 == 0) {
+          param_1[0x20] = 1;
+          param_1[0x21] = 0;
+          param_1[0x22] = 0;
+          param_1[0x23] = 0;
         }
       }
       else if (bVar1 < 0xb) {
         if (bVar1 == 0) {
-          *(undefined4 *)(param_1 + 0x20) = 1;
+          param_1[0x20] = 1;
+          param_1[0x21] = 0;
+          param_1[0x22] = 0;
+          param_1[0x23] = 0;
           return;
         }
         if (bVar1 == 9) {
-          *(undefined1 *)(param_1 + 0x1c) = 0x78;
+          param_1[0x1c] = 0x78;
         }
         else {
 _08009444:
-          sub_08008DBE(param_1);
+          sub_08008DBE(param_1,(ushort)bVar1);
           if (-1 < (int)((uint)DAT_03003d12 << 0x1e)) {
             sub_0800ACFE(0x10);
           }
         }
       }
       else if (bVar1 == 0xb) {
-        *(undefined4 *)(param_1 + 0x20) = 1;
+        param_1[0x20] = 1;
+        param_1[0x21] = 0;
+        param_1[0x22] = 0;
+        param_1[0x23] = 0;
       }
       else {
         if (bVar1 != 0x20) goto _08009444;
@@ -102,10 +117,13 @@ _08009444:
           {
             *(undefined2 *)(param_1 + 10) = *(undefined2 *)(param_1 + 2);
             *(short *)(param_1 + 0xc) = *(short *)(param_1 + 0xc) + 1;
-            iVar4 = *(int *)(param_1 + 0x18) + -1;
-            *(int *)(param_1 + 0x18) = iVar4;
-            if (iVar4 == 0) {
-              *(undefined4 *)(param_1 + 0x20) = 1;
+            iVar4 = *(int *)(param_1 + 0x18);
+            *(int *)(param_1 + 0x18) = iVar4 + -1;
+            if (iVar4 + -1 == 0) {
+              param_1[0x20] = 1;
+              param_1[0x21] = 0;
+              param_1[0x22] = 0;
+              param_1[0x23] = 0;
             }
           }
         }

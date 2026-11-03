@@ -1,5 +1,5 @@
 /* sub_0800E0F8  (original: 0x0800E0F8-0x0800E130 in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 5/5 snapshots, 36% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 36% of instructions covered.
  */
 #include "ghidra_types.h"
 extern undefined2 volatile REG_TM0CNT;

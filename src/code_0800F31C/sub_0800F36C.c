@@ -1,5 +1,5 @@
 /* sub_0800F36C  (original: 0x0800F36C-0x0800F39C in asm/code_0800F31C.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 100% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 

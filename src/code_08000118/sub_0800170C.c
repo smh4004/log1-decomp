@@ -3,25 +3,25 @@
  */
 #include "ghidra_types.h"
 extern int sub_0800324E();
-extern int volatile DAT_030007d0;
-extern int volatile DAT_030007cc;
+extern uint volatile DAT_030007d0;
+extern uint volatile DAT_030007cc;
 
 
 undefined4 sub_0800170C(void)
 
 {
   undefined4 uVar1;
-  int iVar2;
+  uint uVar2;
   
   if (DAT_030007d0 == DAT_030007cc) {
     uVar1 = 0;
   }
   else {
-    iVar2 = DAT_030007d0 + (DAT_030007cc >> 2);
-    if (DAT_030007cc < iVar2) {
-      iVar2 = DAT_030007cc;
+    uVar2 = DAT_030007d0 + ((int)DAT_030007cc >> 2);
+    if ((int)DAT_030007cc < (int)uVar2) {
+      uVar2 = DAT_030007cc;
     }
-    sub_0800324E(iVar2);
+    sub_0800324E(uVar2);
     uVar1 = 1;
   }
   return uVar1;

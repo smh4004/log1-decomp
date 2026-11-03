@@ -1,5 +1,5 @@
 /* sub_08005CA8  (original: 0x08005CA8-0x08005CD6 in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 100% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern uint volatile DAT_0300098c;

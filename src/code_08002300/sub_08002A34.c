@@ -7,7 +7,7 @@ extern int sub_08002466();
 extern ushort volatile DAT_03003d12;
 
 
-void sub_08002A34(undefined4 param_1)
+void sub_08002A34(int param_1)
 
 {
   if (((uint)DAT_03003d12 << 0x18) >> 0x1c != 0) {

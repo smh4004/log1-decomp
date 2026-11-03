@@ -9,7 +9,7 @@ extern undefined volatile gUnknown_08591F3C;
 void sub_0800DAA2(int param_1)
 
 {
-  sub_0800A5F6(&gUnknown_08591F3C + (uint)*(byte *)(param_1 + 4) * 0xc);
+  sub_0800A5F6((int)(&gUnknown_08591F3C + (uint)*(byte *)(param_1 + 4) * 0xc));
   return;
 }
 

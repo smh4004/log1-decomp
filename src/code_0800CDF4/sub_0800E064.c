@@ -12,7 +12,7 @@ void sub_0800E064(void)
   unsigned int __frame[2];   /* stack slots at their original offsets (see autodecomp.stack_frame) */
 #define local_8 ((undefined * *)((char *)__frame + 0x0))
   local_8[0] = &_0800F2D4;
-  sub_080097F8(local_8);
+  sub_080097F8((int *)local_8);
   return;
 }
 

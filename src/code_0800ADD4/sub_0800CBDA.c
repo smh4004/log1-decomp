@@ -5,10 +5,9 @@
 extern int __call_via_r1();
 extern int volatile DAT_0300462c;
 extern int volatile DAT_03004630;
-extern undefined4 volatile DAT_03004628;
 
 
-undefined4 sub_0800CBDA(undefined4 param_1,undefined4 param_2,undefined4 param_3,undefined4 param_4)
+undefined4 sub_0800CBDA(undefined4 param_1)
 
 {
   undefined4 uVar1;
@@ -18,8 +17,7 @@ undefined4 sub_0800CBDA(undefined4 param_1,undefined4 param_2,undefined4 param_3
     uVar1 = 0;
   }
   else {
-    uVar1 = __call_via_r1(param_1,*(undefined4 *)(DAT_03004630 + 0xc),&DAT_03004628,param_4,param_4)
-    ;
+    uVar1 = __call_via_r1(param_1,*(undefined **)(DAT_03004630 + 0xc));
   }
   return uVar1;
 }

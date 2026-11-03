@@ -1,13 +1,13 @@
 /* sub_0800DCF0  (original: 0x0800DCF0-0x0800DDC4 in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; snapshots inconclusive (BIOS call or fault before return).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_080098F8();
 extern int sub_08008D8A();
-extern int sub_0800A6F4();
-extern int sub_080092A4();
+extern int sub_080098F8();
 extern int sub_08008D3A();
+extern int sub_0800A6F4();
 extern int sub_08009680();
+extern int sub_080092A4();
 extern undefined2 volatile REG_BG0CNT;
 extern undefined2 volatile DAT_05000000;
 extern undefined2 volatile gUnknown_08142380;
@@ -18,7 +18,6 @@ extern undefined2 volatile REG_BG3CNT;
 extern undefined1 volatile DAT_02029d94;
 extern undefined volatile DAT_0202addc;
 extern undefined volatile DAT_0202b600;
-extern undefined4 volatile DAT_0202c224;
 extern undefined volatile DAT_02035824;
 extern undefined2 volatile DAT_0203582a;
 extern undefined2 volatile DAT_05000006;
@@ -51,8 +50,8 @@ void sub_0800DCF0(void)
     iVar3 = iVar2;
   } while (iVar2 < 8);
   sub_08009680(&REG_DMA3SAD,0x6000000,&DAT_02020202,0x9600);
-  sub_080092A4(&DAT_0202b600);
-  sub_08008D8A(&DAT_0202b600);
+  sub_080092A4(0x202b600);
+  sub_08008D8A(0x202b600);
   REG_BG0CNT = 0x1c0c;
   iVar3 = 0;
   REG_BG2CNT = 0x1e0c;
@@ -70,7 +69,7 @@ void sub_0800DCF0(void)
     (&DAT_0203582a)[iVar3 * 4] = 0;
     iVar3 = iVar2;
   } while (iVar2 < 100);
-  sub_08009680(&REG_DMA3SAD,&DAT_0202c224,&DAT_02020202,0x9600);
+  sub_08009680(&REG_DMA3SAD,0x202c224,&DAT_02020202,0x9600);
   return;
 }
 

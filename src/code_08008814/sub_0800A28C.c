@@ -29,7 +29,7 @@ void sub_0800A28C(uint *param_1)
     *(byte *)(uVar3 + 0xc) = *(byte *)(uVar3 + 0xc) | 2;
     *(byte *)((int)param_1 + 10) = *(byte *)((int)param_1 + 10) & 0xf7;
     param_1[5] = 0x8009ad3;
-    sub_08009AD2();
+    sub_08009AD2((int)param_1);
     return;
   }
   iVar2 = ((uint)(byte)*puVar4 - (uint)*(byte *)((int)param_1 + 0xb)) * 0x1000000;

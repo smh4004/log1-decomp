@@ -3,7 +3,7 @@
  */
 #include "ghidra_types.h"
 extern int WaitForVBlank();
-extern undefined2 volatile DAT_04000102;
+extern ushort volatile DAT_04000102;
 
 
 void sub_0800AB00(void)

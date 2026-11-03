@@ -1,5 +1,5 @@
 /* sub_08009C34  (original: 0x08009C34-0x08009C52 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern undefined volatile gUnknown_08011928;

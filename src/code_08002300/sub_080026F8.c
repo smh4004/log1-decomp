@@ -1,5 +1,5 @@
 /* sub_080026F8  (original: 0x080026F8-0x08002716 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 100% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int __call_via_r1();
@@ -14,7 +14,7 @@ void sub_080026F8(void)
   
   for (iVar1 = DAT_03000610 + -1; -1 < iVar1; iVar1 = iVar1 + -1) {
     __call_via_r1((&DAT_03000614)[iVar1],
-                  *(undefined4 *)(*(int *)((&DAT_03000614)[iVar1] + 0x34) + 4));
+                  *(undefined **)(*(int *)((&DAT_03000614)[iVar1] + 0x34) + 4));
   }
   return;
 }

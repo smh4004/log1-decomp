@@ -1,13 +1,13 @@
 /* sub_08001212  (original: 0x08001212-0x0800124C in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 43% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 20/30 snapshots, 43% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_080022BA();
-extern int sub_0800ACFE();
 extern int sub_08005F2C();
-extern int sub_0800AD54();
 extern int sub_080097C8();
 extern int sub_080026F8();
+extern int sub_080022BA();
+extern int sub_0800AD54();
+extern int sub_0800ACFE();
 extern ushort volatile DAT_03003d14;
 extern int volatile DAT_030007d0;
 extern undefined volatile DAT_03000110;

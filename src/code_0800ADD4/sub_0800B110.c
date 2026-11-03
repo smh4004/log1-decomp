@@ -1,10 +1,10 @@
 /* sub_0800B110  (original: 0x0800B110-0x0800B18E in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 9/9 snapshots, 25% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_0800ACFE();
 extern int sub_08003398();
 extern int sub_08005526();
+extern int sub_0800ACFE();
 extern undefined1 volatile DAT_0300004e;
 
 
@@ -27,7 +27,7 @@ undefined4 sub_0800B110(int param_1,int param_2)
       *(undefined4 *)(param_1 + 0x38) = 0x8002553;
       (&DAT_0300004e)[*(byte *)(iVar2 + 6)] = (&DAT_0300004e)[*(byte *)(iVar2 + 6)] + -1;
       sub_0800ACFE(7);
-      sub_08005526(*(undefined1 *)(iVar2 + 4));
+      sub_08005526((uint)*(byte *)(iVar2 + 4));
       return 1;
     }
   }

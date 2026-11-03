@@ -10,7 +10,7 @@ void sub_08006A52(int param_1)
 {
   undefined4 local_c;
   
-  sub_080028FC();
+  sub_080028FC(param_1);
   local_c = CONCAT22(*(short *)(param_1 + 0x22) << 4,*(short *)(param_1 + 0x20) << 4);
   *(undefined4 *)(param_1 + 0x28) = local_c;
   return;

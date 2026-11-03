@@ -4,14 +4,14 @@
 #include "ghidra_types.h"
 extern int sub_08002486();
 extern int sub_0800279E();
-extern undefined1 volatile DAT_030007b0;
+extern byte volatile DAT_030007b0;
 extern int volatile DAT_030007bc;
 extern undefined * volatile gUnknown_08166944;
 extern undefined volatile gUnknown_0815A709;
 extern undefined * volatile gUnknown_085C0C80;
 
 
-void sub_08002FC4(int param_1,int param_2,undefined4 param_3,undefined4 param_4)
+void sub_08002FC4(int param_1,int param_2)
 
 {
   int iVar1;
@@ -21,8 +21,8 @@ void sub_08002FC4(int param_1,int param_2,undefined4 param_3,undefined4 param_4)
   if (iVar1 != 0) {
     DAT_030007bc = param_2;
     *(char *)(param_2 + 0x15) = (char)param_1;
-    sub_08002486(param_2,(&gUnknown_085C0C80)[(byte)(&gUnknown_0815A709)[param_1]],
-                 &gUnknown_08166944,0,param_4);
+    sub_08002486(param_2,(int)(&gUnknown_085C0C80)[(byte)(&gUnknown_0815A709)[param_1]],
+                 &gUnknown_08166944,0);
   }
   return;
 }

@@ -6,7 +6,7 @@
 | Byte map | done: `config/regions.yaml` |
 | Relocatable source | done: shift test 37/37 (`docs/shifting.md`) |
 | Ghidra reference C | done: all 865 functions (`ref/`) |
-| C replacing assembly | 58 verified (+47 tested, experimental) of 490 replaceable; `make decomp` plays all three routes identically |
+| C replacing assembly | 488 of 490 replaceable functions have C that compiles (23 hand-written). 166 verified + 102 tested (snapshot-equivalent in all 41 areas, whole-game checked); 174 untested; 46 failing or blocklisted. `make decomp` / `make DECOMP=2` |
 | Text | done: every pointed-to string; conversations as their own files |
 | Conversations | done: 80 sets / 988 lines (speaker, next, text), lines can be added; checked in game |
 | Story | done: 75 quests, 27 task/action types, every field named; add/remove/edit; checked in game |
@@ -22,4 +22,5 @@
 
 ## Next steps
 * Nothing the game reads is left unnamed; `bN`/`unusedN` fields are padding or never read by the code.
-* Capture routes beyond Kame House for more C coverage; bisect the tested tier.
+* C coverage of what the random routes can't reach (quest-dependent story events, the save chip, the ending): routes that play the story.
+* Fix the 23 functions whose C differs on a snapshot, and re-examine the 22 blocklisted by the whole-game check (some may be timing, not behaviour).

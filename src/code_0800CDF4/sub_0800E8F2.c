@@ -41,7 +41,7 @@ uint * sub_0800E8F2(uint *param_1,int param_2)
         puVar2 = puVar1;
         puVar3 = (uint *)puVar1[1];
       }
-      iVar5 = sub_0800E7D8(param_1,uVar4);
+      iVar5 = sub_0800E7D8((int *)param_1,uVar4);
     } while (iVar5 != 0);
   }
   return (uint *)0x0;

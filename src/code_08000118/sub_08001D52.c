@@ -1,9 +1,9 @@
 /* sub_08001D52  (original: 0x08001D52-0x08001DA0 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 3/3 snapshots, 56% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 56% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_0800ACFE();
 extern int sub_08009798();
+extern int sub_0800ACFE();
 extern ushort volatile DAT_03003d12;
 extern ushort volatile DAT_03003d14;
 extern undefined2 volatile REG_BG0HOFS;

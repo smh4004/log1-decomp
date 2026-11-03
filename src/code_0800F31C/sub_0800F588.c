@@ -1,5 +1,5 @@
 /* sub_0800F588  (original: 0x0800F588-0x0800F628 in asm/code_0800F31C.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 25% of instructions covered.
  */
 #include "ghidra_types.h"
 

@@ -1,5 +1,5 @@
 /* sub_08006294  (original: 0x08006294-0x080062C4 in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 66% of instructions covered.
  */
 #include "ghidra_types.h"
 

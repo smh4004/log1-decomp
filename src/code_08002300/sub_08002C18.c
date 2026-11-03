@@ -1,9 +1,9 @@
 /* sub_08002C18  (original: 0x08002C18-0x08002C40 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 55% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int __call_via_r1();
 extern int sub_08002466();
+extern int __call_via_r1();
 
 
 void sub_08002C18(int param_1)
@@ -18,7 +18,7 @@ void sub_08002C18(int param_1)
     return;
   }
   sub_08002466(param_1,0);
-  __call_via_r1(param_1,*(undefined4 *)(*(int *)(param_1 + 0x34) + 8));
+  __call_via_r1(param_1,*(undefined **)(*(int *)(param_1 + 0x34) + 8));
   return;
 }
 

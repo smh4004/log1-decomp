@@ -2,9 +2,9 @@
  * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
  */
 #include "ghidra_types.h"
-extern int sub_0800E7C4();
-extern int __call_via_r0();
 extern int sub_0800E86A();
+extern int __call_via_r0();
+extern int sub_0800E7C4();
 
 
 int sub_0800E778(int param_1)
@@ -20,8 +20,8 @@ int sub_0800E778(int param_1)
   iVar1 = sub_0800E86A(iVar1);
   if (iVar1 == 0) {
     iVar2 = sub_0800E7C4();
-    if (*(int *)(iVar2 + 0x34) != 0) {
-      __call_via_r0();
+    if (*(undefined **)(iVar2 + 0x34) != (undefined *)0x0) {
+      __call_via_r0(*(undefined **)(iVar2 + 0x34));
     }
   }
   return iVar1;

@@ -1,5 +1,5 @@
 /* sub_08004EF4  (original: 0x08004EF4-0x08004F56 in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 13/13 snapshots, 34% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 34% of instructions covered.
  */
 #include "ghidra_types.h"
 

@@ -1,8 +1,8 @@
 /* sub_0800DFC0  (original: 0x0800DFC0-0x0800DFEE in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 47% of instructions covered.
  */
 #include "ghidra_types.h"
-extern undefined1 volatile REG_BLDY;
+extern byte volatile REG_BLDY;
 
 
 void sub_0800DFC0(int param_1)

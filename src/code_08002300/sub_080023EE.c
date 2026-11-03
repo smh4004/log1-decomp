@@ -3,10 +3,10 @@
  */
 #include "ghidra_types.h"
 extern int sub_08004FFA();
-extern undefined4 volatile DAT_03000600;
+extern int volatile DAT_03000600;
 
 
-void sub_080023EE(int param_1,short *param_2)
+void sub_080023EE(int param_1,short *param_2,int param_3)
 
 {
   unsigned int __frame[5];   /* stack slots at their original offsets (see autodecomp.stack_frame) */
@@ -17,7 +17,7 @@ void sub_080023EE(int param_1,short *param_2)
                       *param_2 + **(short **)(param_1 + 0x1c));
   local_10 = *(undefined4 *)param_2;
   local_c = local_14;
-  sub_08004FFA(DAT_03000600,&local_10);
+  sub_08004FFA(DAT_03000600,(short *)&local_10,param_3);
   return;
 }
 

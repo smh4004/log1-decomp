@@ -1,5 +1,5 @@
 /* sub_0800A54E  (original: 0x0800A54E-0x0800A5B8 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 12% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern int sub_0800A4C6();
@@ -23,13 +23,11 @@ void sub_0800A54E(void)
   if (DAT_03003cfc == '\x01') {
     iVar3 = (int)DAT_03003d30;
     puVar2 = &DAT_03003f90;
-    while( true ) {
-      uVar4 = (uint)DAT_03003d06;
-      if (iVar3 <= (int)uVar4) break;
+    while (uVar4 = (uint)DAT_03003d06, (int)uVar4 < iVar3) {
       if (uVar4 != 0) {
         iVar1 = 0;
         do {
-          sub_0800A80E(&DAT_0203f040 + iVar1 * 0x40,puVar2,uVar4);
+          sub_0800A80E((int *)(&DAT_0203f040 + iVar1 * 0x40),(int)puVar2,uVar4);
           iVar1 = iVar1 + 1;
         } while (iVar1 < 0xf);
         puVar2 = puVar2 + (uint)DAT_03003d06 * 4;
@@ -40,7 +38,7 @@ void sub_0800A54E(void)
     }
     iVar1 = 0;
     do {
-      sub_0800A80E(&DAT_0203f040 + iVar1 * 0x40,puVar2,iVar3);
+      sub_0800A80E((int *)(&DAT_0203f040 + iVar1 * 0x40),(int)puVar2,iVar3);
       iVar1 = iVar1 + 1;
     } while (iVar1 < 0xf);
     DAT_03003d06 = DAT_03003d06 - (short)iVar3;

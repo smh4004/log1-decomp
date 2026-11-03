@@ -4,10 +4,10 @@
 #include "ghidra_types.h"
 extern int WaitForVBlank();
 extern undefined2 volatile DAT_040000d2;
-extern undefined2 volatile DAT_04000102;
-extern undefined2 volatile REG_SOUNDCNT_X;
+extern ushort volatile DAT_04000102;
+extern ushort volatile REG_SOUNDCNT_X;
 extern undefined2 volatile DAT_040000c6;
-extern undefined2 volatile REG_IE;
+extern ushort volatile REG_IE;
 
 
 void sub_0800AB1A(void)
@@ -17,7 +17,7 @@ void sub_0800AB1A(void)
   
   uVar1 = REG_IE;
   REG_IE = uVar1 | 0x400;
-  WaitForVBlank();
+  WaitForVBlank(0x400);
   DAT_04000102 = 0;
   DAT_040000c6 = 0;
   DAT_040000d2 = 0;

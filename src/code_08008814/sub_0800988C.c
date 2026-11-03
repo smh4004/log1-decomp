@@ -1,5 +1,5 @@
 /* sub_0800988C  (original: 0x0800988C-0x080098C6 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern undefined2 volatile DAT_07000002;

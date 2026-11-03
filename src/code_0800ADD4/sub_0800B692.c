@@ -2,8 +2,8 @@
  * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
  */
 #include "ghidra_types.h"
-extern int sub_0800ACFE();
 extern int sub_080087A0();
+extern int sub_0800ACFE();
 extern int __16__rt_sdiv();
 extern int volatile DAT_03003b6c;
 extern int volatile DAT_030007e4;
@@ -23,9 +23,9 @@ void sub_0800B692(int param_1)
   if (iVar1 < *(int *)(param_1 + 0x24)) {
     *(int *)(param_1 + 0x24) = iVar1;
   }
-  iVar1 = __16__rt_sdiv(*(undefined4 *)(iVar2 + 0x58),*(int *)(param_1 + 0x24) * 300);
-  sub_080087A0(iVar1 + 0x3c);
-  DAT_030007e4 = iVar1 + 0x3c + DAT_03003b6c + 0x3c;
+  iVar1 = __16__rt_sdiv(*(uint *)(iVar2 + 0x58),*(int *)(param_1 + 0x24) * 300);
+  sub_080087A0(iVar1 + 0x3cU);
+  DAT_030007e4 = iVar1 + 0x3cU + DAT_03003b6c + 0x3c;
   return;
 }
 

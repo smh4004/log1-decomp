@@ -1,12 +1,12 @@
 /* sub_0800A3A6  (original: 0x0800A3A6-0x0800A3E6 in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 67% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern int __call_via_r1();
 extern undefined * volatile gUnknown_08166734;
 
 
-void sub_0800A3A6(int *param_1,undefined4 param_2,undefined4 param_3,undefined4 param_4)
+void sub_0800A3A6(int *param_1)
 
 {
   byte bVar1;
@@ -27,7 +27,7 @@ void sub_0800A3A6(int *param_1,undefined4 param_2,undefined4 param_3,undefined4 
     if ((*(byte *)(param_1 + 6) & 0x88) == 0) {
       uVar2 = 0;
     }
-    __call_via_r1(param_1,(&gUnknown_08166734)[uVar2],&gUnknown_08166734,0x88,param_4);
+    __call_via_r1(param_1,(&gUnknown_08166734)[uVar2]);
   }
   return;
 }

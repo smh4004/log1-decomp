@@ -1,8 +1,8 @@
 /* sub_08000386  (original: 0x08000386-0x080003B4 in asm/code_08000118.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 47% of instructions covered.
  */
 #include "ghidra_types.h"
-extern undefined1 volatile REG_BLDY;
+extern byte volatile REG_BLDY;
 
 
 void sub_08000386(int param_1)

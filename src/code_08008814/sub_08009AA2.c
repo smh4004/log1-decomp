@@ -3,14 +3,14 @@
  */
 #include "ghidra_types.h"
 extern int sub_08009A20();
-extern undefined1 volatile DAT_03003d00;
+extern byte volatile DAT_03003d00;
 
 
-void sub_08009AA2(int param_1)
+void sub_08009AA2(undefined4 *param_1)
 
 {
-  sub_08009A20();
-  DAT_03003d00 = *(undefined1 *)(param_1 + 0x1e);
+  sub_08009A20(param_1);
+  DAT_03003d00 = *(undefined1 *)((int)param_1 + 0x1e);
   return;
 }
 

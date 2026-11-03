@@ -4,9 +4,9 @@
 #include "ghidra_types.h"
 
 
-void sub_08009AD2(int param_1)
-
+undefined4 sub_08009AD2(int param_1)
 {
+  undefined4 __r0 = (undefined4)param_1;   /* what the original leaves in r0 (see autodecomp.py fixvoid) */
   int iVar1;
   
   iVar1 = ((uint)*(byte *)(param_1 + 8) - (uint)*(byte *)(param_1 + 0xb)) * 0x1000000;
@@ -18,6 +18,6 @@ void sub_08009AD2(int param_1)
   iVar1 = *(int *)(param_1 + 0x20);
   *(undefined1 *)(iVar1 + 0x10) = *(undefined1 *)(param_1 + 8);
   *(byte *)(iVar1 + 0xc) = *(byte *)(iVar1 + 0xc) | 0x10;
-  return;
+  return __r0;
+  return __r0;
 }
-

@@ -6,7 +6,7 @@ extern int sub_0800AEC6();
 extern int sub_080060E6();
 extern int sub_0800507A();
 extern int volatile DAT_030005fc;
-extern undefined4 volatile DAT_03000600;
+extern int volatile DAT_03000600;
 
 
 void sub_08006530(int param_1)
@@ -19,7 +19,7 @@ void sub_08006530(int param_1)
     local_18 = CONCAT22(*(short *)(param_1 + 0xe) + 8,*(short *)(param_1 + 0xc) + 0xf);
     local_10 = local_18;
     sub_0800AEC6(&local_10,*(undefined1 *)(param_1 + 5));
-    sub_0800507A(DAT_03000600,param_1 + 0xc,1,0);
+    sub_0800507A(DAT_03000600,(short *)(param_1 + 0xc),1,0);
     sub_080060E6(param_1 + 8);
   }
   return;

@@ -1,13 +1,12 @@
 /* sub_080054AE  (original: 0x080054AE-0x08005526 in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 3/3 snapshots, 54% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; NOT equivalent: cand-error, equal, inconclusive.
  */
 #include "ghidra_types.h"
+extern int sub_08004C5C();
 extern int sub_08004D10();
 extern int __call_via_r3();
-extern int sub_08004C5C();
 extern int volatile DAT_0300087c;
 extern undefined1 volatile DAT_03000038;
-extern undefined4 volatile DAT_03000880;
 extern undefined4 volatile gUnknown_085439E0;
 
 
@@ -31,8 +30,7 @@ void sub_080054AE(void)
         iVar4 = 0;
         if (0 < DAT_0300087c) {
           do {
-            iVar2 = __call_via_r3((int *)(&DAT_03000880)[iVar4],4,uVar3,
-                                  *(undefined4 *)(*(int *)(&DAT_03000880)[iVar4] + 0xc));
+            iVar2 = __call_via_r3();
             if (iVar2 != 0) {
               return;
             }

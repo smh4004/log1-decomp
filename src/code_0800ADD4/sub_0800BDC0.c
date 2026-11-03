@@ -13,7 +13,7 @@ void sub_0800BDC0(int param_1)
   bVar1 = *(char *)(param_1 + 0x10) + 1;
   *(byte *)(param_1 + 0x10) = bVar1;
   if (7 < bVar1) {
-    sub_080028C4();
+    sub_080028C4(param_1);
   }
   return;
 }

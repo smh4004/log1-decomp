@@ -6,11 +6,11 @@ extern int sub_0800283C();
 extern int volatile DAT_030005fc;
 
 
-void sub_0800B644(int param_1,undefined4 param_2,undefined4 param_3,undefined4 param_4)
+void sub_0800B644(int param_1)
 
 {
   if (*(char *)(param_1 + 4) == DAT_030005fc) {
-    sub_0800283C(2,*(undefined1 *)(param_1 + 5),DAT_030005fc,4,param_4);
+    sub_0800283C(2,(uint)*(byte *)(param_1 + 5));
   }
   return;
 }

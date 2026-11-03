@@ -1,5 +1,5 @@
 /* sub_0800CF76  (original: 0x0800CF76-0x0800CF8E in asm/code_0800CDF4.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 83% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 83% of instructions covered.
  */
 #include "ghidra_types.h"
 extern ushort volatile DAT_03003d14;

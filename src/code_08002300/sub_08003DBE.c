@@ -1,5 +1,5 @@
 /* sub_08003DBE  (original: 0x08003DBE-0x08003E02 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; NOT equivalent: r0-void.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 53% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_0800245A();

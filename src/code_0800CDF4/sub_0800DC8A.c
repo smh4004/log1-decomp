@@ -13,11 +13,10 @@ void sub_0800DC8A(int param_1,int *param_2)
   int iVar1;
   unsigned int __frame[3];   /* stack slots at their original offsets (see autodecomp.stack_frame) */
 #define local_c (*(undefined * *)((char *)__frame + 0x0))
-  iVar1 = __call_via_r3(param_2,*(undefined1 *)(param_1 + 4),1,*(int *)(*param_2 + 0x14) + *param_2)
-  ;
+  iVar1 = __call_via_r3();
   *(undefined1 *)(iVar1 + 0x13) = *(undefined1 *)(param_1 + 5);
   local_c = &_0800F274;
-  sub_080097F8(&local_c);
+  sub_080097F8((int *)&local_c);
   return;
 }
 

@@ -1,5 +1,5 @@
 /* sub_08002FF6  (original: 0x08002FF6-0x0800301C in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 100% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_08005C7A();
@@ -9,7 +9,7 @@ extern undefined4 volatile DAT_030007cc;
 extern undefined4 volatile DAT_030007c4;
 extern undefined4 volatile DAT_030007d0;
 extern undefined4 volatile DAT_030007c8;
-extern undefined1 volatile DAT_030007ac;
+extern byte volatile DAT_030007ac;
 
 
 void sub_08002FF6(void)

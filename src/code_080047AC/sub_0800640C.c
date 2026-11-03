@@ -1,11 +1,11 @@
 /* sub_0800640C  (original: 0x0800640C-0x0800647C in asm/code_080047AC.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 86% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_08006330();
-extern int sub_0800245A();
 extern int sub_08002716();
+extern int sub_0800245A();
 extern int sub_08000954();
+extern int sub_08006330();
 extern undefined volatile DAT_03000070;
 extern undefined * volatile gUnknown_08011648;
 
@@ -17,7 +17,7 @@ void sub_0800640C(int param_1)
   int iVar2;
   undefined4 local_18;
   
-  iVar1 = sub_08002716();
+  iVar1 = sub_08002716(param_1);
   local_18 = CONCAT22((short)(*(short *)(param_1 + 10) + *(short *)(param_1 + 0xe)) >> 1,
                       (short)(*(short *)(param_1 + 8) + *(short *)(param_1 + 0xc)) >> 1);
   *(undefined4 *)(iVar1 + 0x20) = local_18;

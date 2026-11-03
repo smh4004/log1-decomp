@@ -1,13 +1,13 @@
 /* sub_0800B18E  (original: 0x0800B18E-0x0800B234 in asm/code_0800ADD4.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 9/9 snapshots, 88% of instructions covered.
  */
 #include "ghidra_types.h"
-extern int sub_0800245A();
 extern int sub_08002716();
 extern int sub_08002300();
-extern int sub_0800507A();
 extern int sub_08000954();
-extern undefined4 volatile DAT_03000600;
+extern int sub_0800507A();
+extern int sub_0800245A();
+extern int volatile DAT_03000600;
 extern undefined * volatile gUnknown_08011E24;
 
 
@@ -25,7 +25,7 @@ void sub_0800B18E(int param_1)
 #define local_1c (*(undefined4 *)((char *)__frame + 0x4))
 #define local_18 (*(undefined4 *)((char *)__frame + 0x8))
 #define local_14 (*(undefined4 *)((char *)__frame + 0xc))
-  iVar3 = sub_08002716();
+  iVar3 = sub_08002716(param_1);
   *(undefined1 *)(iVar3 + 0x14) = *(undefined1 *)(param_1 + 6);
   sub_0800245A(iVar3,&gUnknown_08011E24);
   sVar1 = (short)(*(short *)(param_1 + 8) + *(short *)(param_1 + 0xc)) >> 1;
@@ -45,7 +45,7 @@ void sub_0800B18E(int param_1)
   }
   else {
     sub_08002300(&local_18,iVar3);
-    sub_0800507A(DAT_03000600,&local_18,0,0);
+    sub_0800507A(DAT_03000600,(short *)&local_18,0,0);
   }
   return;
 }

@@ -3,7 +3,7 @@
  */
 #include "ghidra_types.h"
 extern int sub_08009744();
-extern undefined1 volatile DAT_03003b60;
+extern byte volatile DAT_03003b60;
 extern undefined4 volatile DAT_030005e0;
 
 

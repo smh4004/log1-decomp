@@ -2,8 +2,8 @@
  * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
  */
 #include "ghidra_types.h"
-extern int sub_0800279E();
 extern int sub_080026F8();
+extern int sub_0800279E();
 
 
 int sub_0800CBA0(int param_1)
@@ -12,7 +12,7 @@ int sub_0800CBA0(int param_1)
   int iVar1;
   
   sub_080026F8();
-  iVar1 = sub_0800279E(*(undefined4 *)(param_1 + 4));
+  iVar1 = sub_0800279E(*(int *)(param_1 + 4));
   return 1 - iVar1;
 }
 

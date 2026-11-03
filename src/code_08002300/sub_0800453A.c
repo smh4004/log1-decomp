@@ -1,5 +1,5 @@
 /* sub_0800453A  (original: 0x0800453A-0x080045AE in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes game output on tools/harness/decomp_explore.txt (found by gamebisect.py).
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_explore.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 

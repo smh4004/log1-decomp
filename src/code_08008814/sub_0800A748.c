@@ -1,5 +1,5 @@
 /* sub_0800A748  (original: 0x0800A748-0x0800A80E in asm/code_08008814.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 6% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; BLOCKED: passes the snapshot tests but changes the game on tools/harness/decomp_route.txt before its timing horizon (gamebisect.py).
  */
 #include "ghidra_types.h"
 extern int volatile DAT_03003d3c;

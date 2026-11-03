@@ -12,10 +12,10 @@ A pret-style source tree for **Dragon Ball Z: The Legacy of Goku (USA)** (GBA, `
   in each area (characters, enemies, pickups, warps and other trigger zones) as JSON; enemy stats and the player's
   level table as CSV; character sprite sheets as PNG; the 20 sound samples as WAV; all 18 songs as tracker text; the 3 intro
   movies as FLI files and PNG frames. Text can grow.
-* **A C decompilation.** Ghidra reference C for all 865 functions (`ref/`), and **58 functions run as GCC-compiled C** in
-  `make decomp`, a ROM that plays all three test routes identically to the original. Each was checked for equivalence
-  against the original machine code first. Another 47 pass their tests but aren't whole-game clean yet, and 190 compile
-  but haven't been reached by a test.
+* **A C decompilation.** Ghidra reference C for all 865 functions (`ref/`), and C that compiles for 488 of the 490
+  functions the build can swap out. **166 run as GCC-compiled C** in `make decomp` (102 more in `make DECOMP=2`): each
+  was checked against the original machine code from real game states in Kame House and all 41 other areas, and the
+  whole game was checked with them linked. 174 compile but no test reached them. See `docs/decomp.md`.
 * **Tooling.** A headless mGBA harness (screenshots, breakpoints, memory watches, PC traces, call logs, CPU snapshots)
   and a Unicorn equivalence tester.
 
@@ -42,7 +42,7 @@ make extract && make modern   # modding (see USER_README.md)
 |---|---|---|
 | `make` / `make compare` | `log1.gba` + SHA-1 check | prove the source is complete |
 | `make shift-test` | `log1_shift.gba` | prove nothing depends on absolute addresses |
-| `make decomp` (`DECOMP=1/2/3`) | `log1_decomp.gba` | run C in place of assembly (2 and 3 are experimental) |
+| `make decomp` (`DECOMP=1/2/3`) | `log1_decomp.gba` | run C in place of assembly (3, with the untested C, is experimental) |
 | `make extract` / `modern` / `patch` / `verify-mods` | `assets/`, `log1_modern.gba`, `.bps` | mod the game |
 
 ## Repository tour

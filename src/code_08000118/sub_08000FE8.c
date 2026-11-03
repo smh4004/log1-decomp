@@ -3,21 +3,20 @@
  */
 #include "ghidra_types.h"
 extern int sub_08008D8A();
-extern undefined1 volatile DAT_02029d94;
-extern undefined1 volatile REG_BLDY;
+extern byte volatile REG_BLDY;
 
 
-void sub_08000FE8(int param_1)
-
+undefined4 sub_08000FE8(int param_1)
 {
+  undefined4 __r0 = (undefined4)param_1;   /* what the original leaves in r0 (see autodecomp.py fixvoid) */
   byte bVar1;
   
-  sub_08008D8A(&DAT_02029d94);
+  __r0 = (undefined4)sub_08008D8A(0x2029d94);
   if (*(char *)(param_1 + 4) != '\0') {
     bVar1 = *(char *)(param_1 + 4) - 1;
     *(byte *)(param_1 + 4) = bVar1;
     REG_BLDY = bVar1 >> 2;
   }
-  return;
+  return __r0;
+  return __r0;
 }
-

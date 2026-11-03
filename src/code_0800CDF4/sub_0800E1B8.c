@@ -4,9 +4,9 @@
 #include "ghidra_types.h"
 extern undefined2 * volatile DAT_0300464c;
 extern sbyte volatile DAT_03004644;
-extern undefined2 volatile DAT_03004650;
-extern undefined2 volatile REG_IE;
-extern undefined2 volatile REG_IME;
+extern ushort volatile DAT_03004650;
+extern ushort volatile REG_IE;
+extern ushort volatile REG_IME;
 
 
 void sub_0800E1B8(void)

@@ -11,7 +11,7 @@ undefined4 sub_08006054(int param_1)
 {
   int iVar1;
   
-  iVar1 = sub_08000954();
+  iVar1 = sub_08000954(param_1);
   if ((iVar1 == 0) && (*(char *)(param_1 + 5) == DAT_030005fc)) {
     return 1;
   }

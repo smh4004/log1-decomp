@@ -1,10 +1,10 @@
 /* sub_08002556  (original: 0x08002556-0x08002666 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 98% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 98% of instructions covered.
  */
 #include "ghidra_types.h"
 extern int sub_080098DE();
-extern int __call_via_r1();
 extern int __call_via_r2();
+extern int __call_via_r1();
 extern undefined2 volatile DAT_0300079c;
 extern undefined2 volatile DAT_0300079e;
 extern undefined2 volatile DAT_03000794;
@@ -41,8 +41,8 @@ void sub_08002556(undefined2 param_1,undefined2 param_2)
   if (0 < DAT_03000610) {
     do {
       iVar7 = (&DAT_03000614)[iVar5];
-      __call_via_r1(iVar7,*(undefined4 *)(*(int *)(iVar7 + 0x34) + 8));
-      iVar3 = __call_via_r1(iVar7,*(undefined4 *)(*(int *)(iVar7 + 0x34) + 0xc));
+      __call_via_r1(iVar7,*(undefined **)(*(int *)(iVar7 + 0x34) + 8));
+      iVar3 = __call_via_r1(iVar7,*(undefined **)(*(int *)(iVar7 + 0x34) + 0xc));
       if (iVar3 != 0) {
         local_194[local_198] = iVar7;
         local_198 = local_198 + 1;
@@ -92,7 +92,7 @@ void sub_08002556(undefined2 param_1,undefined2 param_2)
   if (0 < local_198) {
     do {
       __call_via_r2(local_194[iVar6],&DAT_03000794,
-                    *(undefined4 *)(*(int *)(local_194[iVar6] + 0x34) + 0x10));
+                    *(undefined **)(*(int *)(local_194[iVar6] + 0x34) + 0x10));
       iVar6 = iVar6 + 1;
     } while (iVar6 < local_198);
   }

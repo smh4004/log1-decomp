@@ -1,23 +1,23 @@
 /* sub_0800689A  (original: 0x0800689A-0x0800697E in asm/code_080067E8.s)
- * Ghidra decompilation, compiled with GCC; not reached by the capture routes (compiles; unverified).
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 60% of instructions covered.
  */
 #include "ghidra_types.h"
+extern int sub_08002300();
+extern int sub_0800994C();
 extern int sub_0800ACFE();
 extern int sub_0800286A();
-extern int sub_08002300();
-extern int sub_0800507A();
 extern int sub_08003398();
-extern int sub_0800994C();
 extern int sub_080028C4();
-extern undefined4 volatile DAT_03000600;
+extern int sub_0800507A();
+extern int volatile DAT_03000600;
 
 
-undefined4 sub_0800689A(undefined4 param_1,int param_2,short *param_3)
+undefined4 sub_0800689A(int param_1,int param_2,short *param_3)
 
 {
   undefined4 uVar1;
   unsigned int __frame[8];   /* stack slots at their original offsets (see autodecomp.stack_frame) */
-#define auStack_20 ((undefined1 *)((char *)__frame + 0x0))
+#define asStack_20 ((short *)((char *)__frame + 0x0))
 #define sStack_1c (*(short *)((char *)__frame + 0x4))
 #define sStack_1a (*(short *)((char *)__frame + 0x6))
 #define sStack_18 (*(short *)((char *)__frame + 0x8))
@@ -30,7 +30,7 @@ undefined4 sub_0800689A(undefined4 param_1,int param_2,short *param_3)
     if (*(int *)(param_3 + 6) != 0) {
       return 0;
     }
-    sub_08002300(&sStack_1c,param_1);
+    sub_08002300((undefined4 *)&sStack_1c,param_1);
     sStack_14 = sStack_1c;
     sStack_12 = sStack_1a;
     if (((sStack_1c < param_3[2]) && (*param_3 < sStack_18)) &&
@@ -43,8 +43,8 @@ undefined4 sub_0800689A(undefined4 param_1,int param_2,short *param_3)
     }
   }
   else if (param_2 == 0) {
-    sub_08002300(auStack_20,param_1);
-    sub_0800994C(&sStack_18,auStack_20,2);
+    sub_08002300((undefined4 *)asStack_20,param_1);
+    sub_0800994C(&sStack_18,asStack_20,2);
     uVar1 = sub_08003398();
     sStack_10 = (short)uVar1;
     if ((((sStack_18 <= sStack_10) && (sStack_10 < sStack_14)) &&

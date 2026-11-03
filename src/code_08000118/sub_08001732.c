@@ -3,7 +3,7 @@
  */
 #include "ghidra_types.h"
 extern int sub_0800324E();
-extern int volatile DAT_030007cc;
+extern uint volatile DAT_030007cc;
 
 
 bool sub_08001732(int *param_1)
@@ -13,7 +13,7 @@ bool sub_08001732(int *param_1)
   
   bVar1 = *param_1 != DAT_030007cc;
   if (bVar1) {
-    sub_0800324E();
+    sub_0800324E(DAT_030007cc);
   }
   return bVar1;
 }

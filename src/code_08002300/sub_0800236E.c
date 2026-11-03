@@ -1,5 +1,5 @@
 /* sub_0800236E  (original: 0x0800236E-0x08002396 in asm/code_08002300.s)
- * Ghidra decompilation, compiled with GCC; equivalent on 15/15 snapshots, 100% of instructions covered.
+ * Ghidra decompilation, compiled with GCC; equivalent on 30/30 snapshots, 100% of instructions covered.
  */
 #include "ghidra_types.h"
 
